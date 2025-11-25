@@ -18,6 +18,7 @@ import {
 
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
+import Logo from "../components/common/Logo";
 
 type NavItem = {
   name: string;
@@ -119,12 +120,12 @@ const userNavItems: NavItem[] = [
   },
   {
     icon: <ListIcon />,
-    name: "Buat Pesanan",
+    name: "Form Pemesanan",
     path: "/order",
   },
   {
-    icon: <UserCircleIcon />,
-    name: "User Profile",
+    icon: <TableIcon />,
+    name: "Profil Saya",
     path: "/profile",
   },
 ];
@@ -369,6 +370,20 @@ const AppSidebar: React.FC = () => {
         }`}
       >
         <Link to="/">
+          <Logo 
+            showText={isExpanded || isHovered || isMobileOpen}
+            className={!isExpanded && !isHovered ? "lg:justify-center" : ""}
+          />
+        </Link>
+      </div>
+
+      {/* Old logo code - commented out
+      <div
+        className={`py-8 flex ${
+          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+        }`}
+      >
+        <Link to="/">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               <img
@@ -396,6 +411,7 @@ const AppSidebar: React.FC = () => {
           )}
         </Link>
       </div>
+      */}
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav className="mb-6">
           <div className="flex flex-col gap-4">

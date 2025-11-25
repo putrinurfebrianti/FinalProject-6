@@ -35,7 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', fn(Request $request) => $request->user());
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{product}', [ProductController::class, 'show']);
-    Route::get('/branches', [BranchController::class, 'index']); 
+    Route::get('/branches', [BranchController::class, 'index']);
     Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
 });
 
@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // ====================================================
 Route::middleware(['auth:sanctum', 'user'])->prefix('user')->group(function () {
     Route::post('/orders', [OrderController::class, 'createOrder']);
+    Route::get('/orders', [OrderController::class, 'getMyOrders']);
 });
 
 // ====================================================
@@ -51,7 +52,7 @@ Route::middleware(['auth:sanctum', 'user'])->prefix('user')->group(function () {
 // ====================================================
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/outbounds', [OutboundController::class, 'index']);
-    Route::post('/outbounds', [OutboundController::class, 'createOutbound']); 
+    Route::post('/outbounds', [OutboundController::class, 'createOutbound']);
     Route::get('/reports', [AdminReportController::class, 'index']);
     Route::post('/reports/generate', [AdminReportController::class, 'generateDailyReport']);
     Route::get('/stock', [BranchStockController::class, 'getMyBranchStock']);
@@ -70,11 +71,11 @@ Route::middleware(['auth:sanctum', 'supervisor'])->prefix('supervisor')->group(f
 // ====================================================
 Route::middleware(['auth:sanctum', 'superadmin'])->prefix('superadmin')->group(function () {
     Route::post('/inbounds', [InboundController::class, 'createInbound']);
-    Route::apiResource('/products', ProductController::class)->except(['index', 'show']); 
-    Route::apiResource('/branches', BranchController::class)->except(['index', 'show']); 
+    Route::apiResource('/products', ProductController::class)->except(['index', 'show']);
+    Route::apiResource('/branches', BranchController::class)->except(['index', 'show']);
     Route::post('/register-user', [AuthController::class, 'register']);
     Route::get('/users', [UserManagementController::class, 'index']);
     Route::get('/users/{user}', [UserManagementController::class, 'show']);
     Route::put('/users/{user}', [UserManagementController::class, 'update']);
     Route::delete('/users/{user}', [UserManagementController::class, 'destroy']);
-}); 
+});

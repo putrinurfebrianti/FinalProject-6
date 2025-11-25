@@ -12,8 +12,11 @@ import SignUp from "./pages/AuthPages/SignUp";
 import SupervisorDashboard from "./pages/Supervisor/SupervisorDashboard";
 import SupervisorReports from "./pages/Supervisor/SupervisorReports";
 
+import CustomerDashboard from "./pages/Customer/CustomerDashboard";
+import ProductCatalog from "./pages/Customer/ProductCatalog";
+import OrderForm from "./pages/Customer/OrderForm";
+import MyOrders from "./pages/Customer/MyOrders";
 
-import Home from "./pages/Dashboard/Home";
 import UserProfiles from "./pages/UserProfiles"; 
 import NotFound from "./pages/OtherPage/NotFound";
 
@@ -33,7 +36,10 @@ export default function App() {
         <Route element={<AuthRoute />}>
           <Route element={<AppLayout />}>
             
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<CustomerDashboard />} />
+            <Route path="/books" element={<ProductCatalog />} />
+            <Route path="/order" element={<OrderForm />} />
+            <Route path="/my-orders" element={<MyOrders />} />
             <Route path="/profile" element={<UserProfiles />} />
 
           
