@@ -31,6 +31,34 @@ export default function AuthLayout({
             <GridShape />
           </div>
 
+          {/* Moving pills / herbs animation container (behind overlay & logo) */}
+          <div className="auth-pills -z-0" aria-hidden>
+            <div className="auth-pill auth-pill--sm" style={{ left: '6%', bottom: '-12%', animationDelay: '0s', animationDuration: '14s' }}>
+              <img src="/images/logo/obat%20hijau.jpg" alt="" />
+            </div>
+            <div className="auth-pill auth-pill--md" style={{ left: '20%', bottom: '-18%', animationDelay: '1.6s', animationDuration: '15s' }}>
+              <img src="/images/logo/obat%20hijau.jpg" alt="" />
+            </div>
+            <div className="auth-pill auth-pill--sm" style={{ left: '34%', bottom: '-22%', animationDelay: '0.9s', animationDuration: '13s' }}>
+              <img src="/images/logo/obat%20hijau.jpg" alt="" />
+            </div>
+            <div className="auth-pill auth-pill--lg" style={{ left: '50%', bottom: '-16%', animationDelay: '3s', animationDuration: '18s' }}>
+              <img src="/images/logo/obat%20hijau.jpg" alt="" />
+            </div>
+            <div className="auth-pill auth-pill--md" style={{ left: '66%', bottom: '-20%', animationDelay: '2.4s', animationDuration: '15s' }}>
+              <img src="/images/logo/obat%20hijau.jpg" alt="" />
+            </div>
+            <div className="auth-pill auth-pill--xs" style={{ left: '82%', bottom: '-14%', animationDelay: '1s', animationDuration: '11s' }}>
+              <img src="/images/logo/obat%20hijau.jpg" alt="" />
+            </div>
+            <div className="auth-pill auth-pill--sm" style={{ left: '28%', bottom: '-26%', animationDelay: '4.1s', animationDuration: '20s' }}>
+              <img src="/images/logo/obat%20hijau.jpg" alt="" />
+            </div>
+            <div className="auth-pill auth-pill--md" style={{ left: '44%', bottom: '-18%', animationDelay: '2.7s', animationDuration: '17s' }}>
+              <img src="/images/logo/obat%20hijau.jpg" alt="" />
+            </div>
+          </div>
+
           {/* Center logo + translucent backing */}
           <div className="relative z-10 flex flex-col items-center justify-center gap-6 p-6">
             {/* Logo centered and slightly larger (no circular backdrop) */}
@@ -38,7 +66,7 @@ export default function AuthLayout({
               <img
                 src="/images/logo/Herbaflow.png"
                 alt="HerbaFlow Logo"
-                className="w-[460px] h-[460px] object-contain mx-auto"
+                className="w-[760px] h-[760px] object-contain mx-auto"
                 style={{ filter: 'drop-shadow(0 22px 48px rgba(20,30,20,0.2))' }}
                 width={460}
                 height={460}
