@@ -6,7 +6,6 @@ import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
-import Button from "../ui/button/Button";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -110,7 +109,6 @@ export default function SignInForm() {
                     placeholder="supervisor.bogor@herbalife.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    required
                   />
                 </div>
                 <div>
@@ -123,7 +121,6 @@ export default function SignInForm() {
                       placeholder="password123"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      required
                     />
                     <span
                       onClick={() => setShowPassword(!showPassword)}
@@ -158,9 +155,13 @@ export default function SignInForm() {
                 )}
                 
                 <div>
-                  <Button type="submit" className="w-full" size="sm" disabled={isLoading}>
+                  <button 
+                    type="submit" 
+                    className="w-full px-4 py-2 text-sm font-medium text-white bg-herbalife-600 hover:bg-herbalife-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isLoading}
+                  >
                     {isLoading ? "Signing In..." : "Sign in"}
-                  </Button>
+                  </button>
                 </div>
               </div>
             </form>
