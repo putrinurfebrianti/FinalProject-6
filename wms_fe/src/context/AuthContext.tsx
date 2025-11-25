@@ -29,8 +29,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         setUser(JSON.parse(storedUser));
         setToken(storedToken);
-      } catch (error) {
-        console.error("Gagal parse data user dari localStorage", error);
+      } catch {
         localStorage.removeItem("user");
         localStorage.removeItem("token");
       }
@@ -52,22 +51,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     window.location.replace("/signin");
   };
 
-  const value = {
-    user,
-    token,
-    login,
-    logout,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, token, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useAuth harus digunakan di dalam AuthProvider");
   }
-
   return context;
 };

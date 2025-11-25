@@ -6,6 +6,7 @@ import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
+import Button from "../ui/button/Button";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,7 +30,7 @@ export default function SignInForm() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
@@ -37,22 +38,34 @@ export default function SignInForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Login Gagal. Cek email atau password.");
+        throw new Error(
+          data.message || "Login Gagal. Cek email atau password."
+        );
       }
 
       console.log("Login sukses:", data);
-      
-      login(data.access_token, data.user); 
-      
+
+      // simpan token dan user
+      login(data.access_token, data.user);
+
+      // === ROLE BASED REDIRECT ===
       switch (data.user.role) {
         case "supervisor":
           navigate("/supervisor/dashboard");
           break;
-        case "user":
-          navigate("/");
+
+        case "customer":
+          navigate("/"); // dashboard customer
           break;
+
+        case "admin":
+        case "superadmin":
+          navigate("/admin/dashboard");
+          break;
+
+        case "user":
         default:
-          navigate("/"); 
+          navigate("/");
       }
 
     } catch (err) {
@@ -77,6 +90,7 @@ export default function SignInForm() {
           Back to dashboard
         </Link>
       </div>
+
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-8">
@@ -87,6 +101,7 @@ export default function SignInForm() {
               Enter your email and password to sign in!
             </p>
           </div>
+
           <div>
             <div className="relative py-3 sm:py-5">
               <div className="absolute inset-0 flex items-center">
@@ -98,85 +113,77 @@ export default function SignInForm() {
                 </span>
               </div>
             </div>
+
             <form onSubmit={handleSubmit}>
               <div className="space-y-6">
                 <div>
-                  <Label>
-                    Email <span className="text-error-500">*</span>{" "}
-                  </Label>
+                  <Label>Email *</Label>
                   <Input
                     type="email"
-                    placeholder="supervisor.bogor@herbalife.com"
+                    placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </div>
+
                 <div>
-                  <Label>
-                    Password <span className="text-error-500">*</span>{" "}
-                  </Label>
+                  <Label>Password *</Label>
                   <div className="relative">
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="password123"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      required
                     />
+
                     <span
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
                     >
                       {showPassword ? (
-                        <EyeIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
+                        <EyeIcon className="size-5" />
                       ) : (
-                        <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
+                        <EyeCloseIcon className="size-5" />
                       )}
                     </span>
                   </div>
                 </div>
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Checkbox checked={isChecked} onChange={setIsChecked} />
-                    <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
+                    <span className="text-sm text-gray-700 dark:text-gray-400">
                       Keep me logged in
                     </span>
                   </div>
+
                   <Link
                     to="/reset-password"
-                    className="text-sm text-herbalife-600 hover:text-herbalife-700 dark:text-herbalife-400"
+                    className="text-sm text-brand-500 hover:text-brand-600"
                   >
                     Forgot password?
                   </Link>
                 </div>
+
                 {error && (
-                  <div className="text-sm text-center text-red-500">
-                    {error}
-                  </div>
+                  <p className="text-sm text-center text-red-500">{error}</p>
                 )}
-                
-                <div>
-                  <button 
-                    type="submit" 
-                    className="w-full px-4 py-2 text-sm font-medium text-white bg-herbalife-600 hover:bg-herbalife-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Signing In..." : "Sign in"}
-                  </button>
-                </div>
+
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Signing In..." : "Sign In"}
+                </Button>
               </div>
             </form>
 
-            <div className="mt-5">
-              <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
-                Don&apos;t have an account?{" "}
-                <Link
-                  to="/signup"
-                  className="text-herbalife-600 hover:text-herbalife-700 dark:text-herbalife-400"
-                >
-                  Sign Up
-                </Link>
-              </p>
+            <div className="mt-5 text-center text-sm text-gray-700 dark:text-gray-400">
+              Don’t have an account?{" "}
+              <Link to="/signup" className="text-brand-500">
+                Sign Up
+              </Link>
             </div>
+
           </div>
         </div>
       </div>
