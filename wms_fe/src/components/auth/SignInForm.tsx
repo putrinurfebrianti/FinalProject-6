@@ -81,7 +81,7 @@ export default function SignInForm() {
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-8">
-            <h1 className="mb-2 font-semibold text-green-900 text-title-sm dark:text-white/90 sm:text-title-md">
+            <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
               Sign In
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -146,7 +146,7 @@ export default function SignInForm() {
                   </div>
                   <Link
                     to="/reset-password"
-                    className="text-sm text-green-600 hover:text-green-700 dark:text-green-400"
+                    className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
                   >
                     Forgot password?
                   </Link>
@@ -158,7 +158,7 @@ export default function SignInForm() {
                 )}
                 
                 <div>
-                  <Button type="submit" className="w-full !bg-green-600 hover:!bg-green-700" size="sm" disabled={isLoading}>
+                  <Button type="submit" className="w-full" size="sm" disabled={isLoading}>
                     {isLoading ? "Signing In..." : "Sign in"}
                   </Button>
                 </div>
@@ -170,7 +170,7 @@ export default function SignInForm() {
                 Don&apos;t have an account?{" "}
                 <Link
                   to="/signup"
-                  className="text-green-600 hover:text-green-700 dark:text-green-400"
+                  className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
                 >
                   Sign Up
                 </Link>

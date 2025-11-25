@@ -8,7 +8,6 @@ interface InputProps {
   placeholder?: string;
   value?: string | number;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  required?: boolean;
   className?: string;
   min?: string;
   max?: string;
@@ -59,7 +58,6 @@ const Input: FC<InputProps> = ({
         min={min}
         max={max}
         step={step}
-        required={required}
         disabled={disabled}
         className={inputClasses}
       />
