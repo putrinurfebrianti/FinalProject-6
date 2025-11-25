@@ -15,7 +15,7 @@ export default function AuthLayout({
         <div
           className="items-center hidden w-full h-full lg:w-1/2 lg:flex justify-center items-center relative overflow-hidden"
           style={{
-            background: 'linear-gradient(120deg, #eafaf0 0%, #cff6dc 100%)',
+            background: 'linear-gradient(120deg, #58ea90 0%, #0a9a3a 100%)',
           }}
         >
           {/* Soft vignette to give depth */}
@@ -33,27 +33,15 @@ export default function AuthLayout({
 
           {/* Center logo + translucent backing */}
           <div className="relative z-10 flex flex-col items-center justify-center gap-6 p-6">
-            {/* translucent rounded backdrop so the logo pops */}
-            <div
-              aria-hidden
-              style={{
-                width: 420,
-                height: 420,
-                borderRadius: 9999,
-                background: 'rgba(255,255,255,0.78)',
-                boxShadow: '0 30px 80px rgba(0,0,0,0.12)',
-                transform: 'translateY(-4%)',
-              }}
-            />
-
+            {/* Logo centered and slightly larger (no circular backdrop) */}
             <Link to="/" className="relative z-20 block">
               <img
                 src="/images/logo/Herbaflow.png"
                 alt="HerbaFlow Logo"
-                className="w-[360px] h-[360px] object-contain"
-                style={{ filter: 'drop-shadow(0 18px 40px rgba(20,30,20,0.18))' }}
-                width={360}
-                height={360}
+                className="w-[460px] h-[460px] object-contain mx-auto"
+                style={{ filter: 'drop-shadow(0 22px 48px rgba(20,30,20,0.2))' }}
+                width={460}
+                height={460}
               />
             </Link>
 
