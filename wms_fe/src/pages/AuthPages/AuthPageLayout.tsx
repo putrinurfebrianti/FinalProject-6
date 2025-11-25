@@ -15,7 +15,7 @@ export default function AuthLayout({
         <div
           className="items-center hidden w-full h-full lg:w-1/2 lg:flex justify-center items-center relative overflow-hidden"
           style={{
-            background: 'linear-gradient(120deg, #58ea90 0%, #0a9a3a 100%)',
+            background: 'linear-gradient(120deg, #0c100e 0%, #0cdc51 100%)',
           }}
         >
           {/* Soft vignette to give depth */}
@@ -34,9 +34,9 @@ export default function AuthLayout({
           {/* Moving pills / herbs animation container (behind overlay & logo) */}
           <div className="auth-pills -z-0" aria-hidden>
             {/* denser layout: 18 pills with mixed sizes / subtle & bold variants */}
-            <div className="auth-pill auth-pill--xs auth-pill--subtle" style={{ left: '4%', bottom: '-10%', animationDelay: '0s' }}><img src="/images/logo/obat%20hijau.jpg" alt=""/></div>
-            <div className="auth-pill auth-pill--sm auth-pill--subtle" style={{ left: '11%', bottom: '-16%', animationDelay: '0.6s' }}><img src="/images/logo/obat%20hijau.jpg" alt=""/></div>
-            <div className="auth-pill auth-pill--sm auth-pill--bold" style={{ left: '16%', bottom: '-12%', animationDelay: '1.2s' }}><img src="/images/logo/obat%20hijau.jpg" alt=""/></div>
+            <div className="auth-pill auth-pill--xs auth-pill--subtle" style={{ left: '4%', bottom: '-10%', animationDelay: '0s' }}><img src="/images/logo/obathijau.jpg" alt=""/></div>
+            <div className="auth-pill auth-pill--sm auth-pill--subtle" style={{ left: '11%', bottom: '-16%', animationDelay: '0.6s' }}><img src="/images/logo/obathijau.jpg" alt=""/></div>
+            <div className="auth-pill auth-pill--sm auth-pill--bold" style={{ left: '16%', bottom: '-12%', animationDelay: '1.2s' }}><img src="/images/logo/obathijau.jpg" alt=""/></div>
             <div className="auth-pill auth-pill--md auth-pill--subtle" style={{ left: '22%', bottom: '-22%', animationDelay: '1.9s' }}><img src="/images/logo/obat%20hijau.jpg" alt=""/></div>
             <div className="auth-pill auth-pill--xs auth-pill--subtle" style={{ left: '30%', bottom: '-28%', animationDelay: '2.4s' }}><img src="/images/logo/obat%20hijau.jpg" alt=""/></div>
             <div className="auth-pill auth-pill--lg auth-pill--bold" style={{ left: '36%', bottom: '-16%', animationDelay: '3s' }}><img src="/images/logo/obat%20hijau.jpg" alt=""/></div>
@@ -65,7 +65,7 @@ export default function AuthLayout({
                 src="/images/logo/Herbaflow.png"
                 alt="HerbaFlow Logo"
                 className="w-[760px] h-[760px] object-contain mx-auto"
-                style={{ filter: 'drop-shadow(0 22px 48px rgba(20,30,20,0.2))' }}
+                style={{ filter: 'drop-shadow(0 22px 48px rgb(3, 6, 3))' }}
                 width={460}
                 height={460}
               />
