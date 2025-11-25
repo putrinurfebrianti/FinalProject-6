@@ -60,11 +60,7 @@
     100% { transform: translateX(0) rotate(0deg); }
   }
 }
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* (original tailwind imports remain at top of file; duplicated block removed) */
 
 @layer base {
   body {
