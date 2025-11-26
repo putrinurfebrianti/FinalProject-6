@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     use HasFactory;
-    
-    protected $fillable = ['sku', 'name', 'category', 'central_stock'];
+
+    protected $fillable = ['sku', 'name', 'category', 'price', 'central_stock'];
 
     public function branchStocks()
     {

@@ -3,14 +3,46 @@ import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
+import { useAuth } from "../../context/AuthContext";
 
 export default function UserInfoCard() {
   const { isOpen, openModal, closeModal } = useModal();
+  const { user } = useAuth();
+  
   const handleSave = () => {
     // Handle save logic here
     console.log("Saving changes...");
     closeModal();
   };
+
+  // Split name into first and last
+  const getFirstName = () => {
+    if (!user?.name) return "-";
+    const names = user.name.split(" ");
+    return names[0];
+  };
+
+  const getLastName = () => {
+    if (!user?.name) return "-";
+    const names = user.name.split(" ");
+    return names.length > 1 ? names.slice(1).join(" ") : "-";
+  };
+
+  const getRoleDisplay = (role?: string) => {
+    switch (role) {
+      case "user":
+        return "Customer";
+      case "admin":
+        return "Admin Cabang";
+      case "supervisor":
+        return "Supervisor";
+      case "superadmin":
+        return "Super Admin";
+      default:
+        return "User";
+    }
+  };
+
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -49,16 +81,16 @@ export default function UserInfoCard() {
 
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Phone
+                User ID
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                +09 363 398 46
+                #{user?.id || "-"}
               </p>
             </div>
 
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Bio
+                Role
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
                 Supervisor
