@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\BranchStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ActivityLog;
 
@@ -57,6 +58,67 @@ class InboundController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Gagal membuat inbound: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function bulk(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'branch_id' => 'required|exists:branches,id',
+            'date' => 'required|date',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $created = [];
+            foreach ($request->items as $item) {
+                $product = Product::find($item['product_id']);
+
+                if ($product->central_stock < $item['quantity']) {
+                    DB::rollBack();
+                    return response()->json(['status' => 'error', 'message' => 'Stok gudang pusat tidak mencukupi untuk SKU ' . $product->sku], 400);
+                }
+
+                $inbound = Inbound::create([
+                    'product_id' => $item['product_id'],
+                    'branch_id' => $request->branch_id,
+                    'quantity' => $item['quantity'],
+                    'date' => $request->date,
+                    'sent_by_user_id' => Auth::id(),
+                    'status' => 'received'
+                ]);
+
+                $product->decrement('central_stock', $item['quantity']);
+
+                $branchStock = BranchStock::firstOrCreate(
+                    ['branch_id' => $request->branch_id, 'product_id' => $item['product_id']],
+                    ['stock' => 0]
+                );
+                $branchStock->increment('stock', $item['quantity']);
+
+                ActivityLog::create([
+                    'user_id' => Auth::id(),
+                    'action' => 'CREATE_INBOUND',
+                    'description' => 'Superadmin mengirim ' . $item['quantity'] . ' unit SKU ' . $product->sku . ' ke Cabang ' . $request->branch_id
+                ]);
+
+                $created[] = $inbound;
+            }
+
+            DB::commit();
+            return response()->json(['status' => 'success', 'message' => 'Bulk inbound berhasil dibuat', 'data' => $created], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => 'error', 'message' => 'Gagal membuat bulk inbound: ' . $e->getMessage()], 500);
         }
     }
 }

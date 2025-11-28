@@ -12,8 +12,9 @@ import {
   TableIcon,
   UserCircleIcon,
   ListIcon, // Untuk Admin (Forms/Input)
-  BoxCubeIcon, // Untuk Admin (Stok)
-  PageIcon, // Untuk Superadmin
+  BoxCubeIcon, // Untuk Admin (Stok),
+  PlugInIcon,
+  TimeIcon,
 } from "../icons"; // Pastikan path ke 'icons' Anda benar
 
 import { useSidebar } from "../context/SidebarContext";
@@ -86,23 +87,33 @@ const superadminNavItems: NavItem[] = [
   },
   {
     icon: <BoxCubeIcon />,
-    name: "Manajemen Produk",
+    name: "Products",
     path: "/superadmin/products",
   },
   {
-    icon: <PageIcon />,
-    name: "Manajemen Cabang",
-    path: "/superadmin/branches",
+    icon: <TableIcon />,
+    name: "Stok Cabang",
+    path: "/superadmin/branchstock",
+  },
+  {
+    icon: <BoxCubeIcon />, // Icon Inbound
+    name: "Kirim Stok (Inbound)",
+    path: "/superadmin/inbound",
   },
   {
     icon: <UserCircleIcon />,
-    name: "Manajemen User",
+    name: "Users",
     path: "/superadmin/users",
   },
   {
-    icon: <ListIcon />,
-    name: "Kirim Stok (Inbound)",
-    path: "/superadmin/inbounds",
+    icon: <PlugInIcon />,
+    name: "Branches",
+    path: "/superadmin/branches",
+  },
+  {
+    icon: <TimeIcon />,
+    name: "Activity Logs",
+    path: "/superadmin/activitylogs",
   },
 ];
 
@@ -159,6 +170,8 @@ const AppSidebar: React.FC = () => {
             icon: <UserCircleIcon />,
             name: "User Profile",
             path: "/profile",
+            // subItems is optional, but explicitly set to undefined for type safety
+            subItems: undefined,
           },
         ];
     }
@@ -183,7 +196,7 @@ const AppSidebar: React.FC = () => {
   useEffect(() => {
     let submenuMatched = false;
     navItems.forEach((nav, index) => {
-      if (nav.subItems) {
+      if (nav.subItems && Array.isArray(nav.subItems)) {
         nav.subItems.forEach((subItem) => {
           if (isActive(subItem.path)) {
             setOpenSubmenu({

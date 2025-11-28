@@ -34,15 +34,17 @@ export default function NotificationDropdown() {
       // ROLE BASED API SETUP
       // =====================================
 
-      if (user.role === "admin" || user.role === "superadmin") {
-        outboundURL = "http://127.0.0.1:8000/api/outbounds";
+      if (user.role === "admin") {
+        // Admin endpoints are namespaced under /admin
+        outboundURL = "http://127.0.0.1:8000/api/admin/outbounds";
         reportURL = "http://127.0.0.1:8000/api/admin/reports";
         redirectURL = "/admin";
       }
 
       if (user.role === "supervisor") {
-        // Kalau supervisor punya API sendiri → pakai ini
-        outboundURL = "http://127.0.0.1:8000/api/supervisor/outbounds";
+        // Supervisor currently has only report endpoints in backend.
+        // If a supervisor outbound API is added later, replace the following.
+        outboundURL = ""; // no outbound route for supervisor by default
         reportURL = "http://127.0.0.1:8000/api/supervisor/reports";
         redirectURL = "/supervisor";
 
@@ -52,23 +54,57 @@ export default function NotificationDropdown() {
       }
 
       if (user.role === "user") {
-        outboundURL = "http://127.0.0.1:8000/api/user/outbounds";
+        // Users do not have an 'outbounds' endpoint — they have orders instead.
+        // We'll reuse order endpoints to indicate new activity for customers.
+        outboundURL = "http://127.0.0.1:8000/api/user/orders";
         reportURL = "http://127.0.0.1:8000/api/user/reports";
         redirectURL = "/";
       }
 
-      if (!outboundURL || !reportURL) return;
+      // If neither url provided, nothing to fetch
+      if (!outboundURL && !reportURL) {
+        setNotifications([]);
+        setNotifying(false);
+        return;
+      }
 
-      const [outboundRes, reportRes] = await Promise.all([
-        fetch(outboundURL, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(reportURL, { headers: { Authorization: `Bearer ${token}` } }),
-      ]);
+      // Debug token presence and endpoints
+      console.debug("Notif fetch — token:", token, { outboundURL, reportURL });
+
+      const requests = [] as Promise<Response>[];
+      if (outboundURL) requests.push(fetch(outboundURL, { headers: { Authorization: `Bearer ${token}` } }));
+      if (reportURL) requests.push(fetch(reportURL, { headers: { Authorization: `Bearer ${token}` } }));
+
+      const responses = await Promise.all(requests);
+      const outboundRes = responses[0] ?? null;
+      const reportRes = responses[1] ?? null;
 
       let outboundData: any[] = [];
       let reportData: any[] = [];
 
-      if (outboundRes.ok) outboundData = (await outboundRes.json()).data ?? [];
-      if (reportRes.ok) reportData = (await reportRes.json()).data ?? [];
+      if (outboundRes) {
+        if (!outboundRes.ok) {
+          console.warn("Outbound API returned non-ok status", outboundRes.status);
+        } else {
+          try {
+            outboundData = (await outboundRes.json()).data ?? [];
+          } catch (err) {
+            console.warn("Failed parsing outbound response:", err);
+          }
+        }
+      }
+
+      if (reportRes) {
+        if (!reportRes.ok) {
+          console.warn("Report API returned non-ok status", reportRes.status);
+        } else {
+          try {
+            reportData = (await reportRes.json()).data ?? [];
+          } catch (err) {
+            console.warn("Failed parsing report response:", err);
+          }
+        }
+      }
 
       const notifList: Notification[] = [];
 

@@ -11,8 +11,9 @@ const RedirectIfAuth = () => {
       case "supervisor":
         return <Navigate to="/supervisor/dashboard" replace />;
       case "admin":
-      case "superadmin":
         return <Navigate to="/admin/dashboard" replace />;
+      case "superadmin":
+        return <Navigate to="/superadmin/dashboard" replace />;
       default:
         return <Navigate to="/" replace />;
     }

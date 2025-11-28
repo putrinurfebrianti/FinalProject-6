@@ -194,9 +194,11 @@
 
 .flatpickr-wrapper {
   @apply w-full;
+  cursor: pointer;
 }
 .flatpickr-calendar {
   @apply mt-2 !bg-white !rounded-xl !p-5 !border !border-gray-200 !text-gray-500 dark:!bg-gray-dark dark:!text-gray-400 dark:!shadow-theme-xl 2xsm:!w-auto;
+  z-index: 9999; /* Ensure dropdown appears above other layout layers */
 }
 
 .flatpickr-months .flatpickr-prev-month:hover svg,

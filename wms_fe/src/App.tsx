@@ -32,6 +32,15 @@ import AdminReports from "./pages/admin/AdminReports";
 import UserProfiles from "./pages/UserProfiles";
 import NotFound from "./pages/OtherPage/NotFound";
 
+import SuperadminDashboard from "./pages/Superadmin/Dashboard"; // Halaman Dashboard baru
+import SuperadminProducts from "./pages/Superadmin/Products"; // Halaman Products baru
+import SuperadminBranchStock from "./pages/Superadmin/Branchstock";
+import SuperadminInbound from "./pages/Superadmin/Inbound";
+import SuperadminUsers from "./pages/Superadmin/Users";
+import SuperadminBranches from "./pages/Superadmin/Branches";
+import SuperadminActivityLogs from "./pages/Superadmin/ActivityLogs";
+import SuperAdminRoute from "./routes/SuperAdminRoute";
+
 export default function App() {
   return (
     <>
@@ -71,6 +80,17 @@ export default function App() {
               <Route path="/admin/stock" element={<AdminBranchStock />} />
               <Route path="/admin/outbounds" element={<AdminOutbounds />} />
               <Route path="/admin/reports" element={<AdminReports />} />
+            </Route>
+
+            {/* ==== ADMIN ==== */}
+            <Route element={<SuperAdminRoute />}>
+              <Route path="/superadmin/dashboard" element={<SuperadminDashboard />} />
+              <Route path="/superadmin/products" element={<SuperadminProducts />} />
+              <Route path="/superadmin/branchstock" element={<SuperadminBranchStock />} />
+              <Route path="/superadmin/inbound" element={<SuperadminInbound />} />
+              <Route path="/superadmin/users" element={<SuperadminUsers />} />
+              <Route path="/superadmin/branches" element={<SuperadminBranches />} />
+              <Route path="/superadmin/activitylogs" element={<SuperadminActivityLogs />} />
             </Route>
 
           </Route>

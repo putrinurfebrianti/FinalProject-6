@@ -46,7 +46,8 @@ export default function SignInForm() {
       console.log("Login sukses:", data);
 
       // simpan token dan user
-      login(data.access_token, data.user);
+      // isChecked: true -> remember localStorage, false -> sessionStorage
+      login(data.access_token, data.user, isChecked);
 
       // === ROLE BASED REDIRECT ===
       switch (data.user.role) {
@@ -59,8 +60,10 @@ export default function SignInForm() {
           break;
 
         case "admin":
-        case "superadmin":
           navigate("/admin/dashboard");
+          break;
+        case "superadmin":
+          navigate("/superadmin/dashboard");
           break;
 
         case "user":

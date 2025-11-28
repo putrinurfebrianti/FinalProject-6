@@ -52,7 +52,7 @@ export default function AuthLayout({
             </Link>
 
             <p className="max-w-xs text-center text-white">
-              HerbaFlow — kesehatan alami yang dikemas dengan gaya modern dan detail berkualitas.
+              HerbaFlow — Smart System For Your Inventory.
             </p>
           </div>
         </div>

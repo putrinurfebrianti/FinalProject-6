@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { apiGet, apiPost } from "../../utils/api";
 
 interface Outbound {
   id: number;
@@ -42,9 +43,7 @@ export default function AdminOutbounds() {
     if (!token) return;
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/admin/outbounds", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiGet('/admin/outbounds');
       const data = await res.json();
       setOutbounds(normalizeOutbounds(data));
     } catch (err) {
@@ -63,18 +62,11 @@ export default function AdminOutbounds() {
     e.preventDefault();
 
     try {
-      await fetch("http://127.0.0.1:8000/api/admin/outbounds", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          order_number: form.order_number,
-          product_id: Number(form.product_id),
-          quantity: Number(form.quantity),
-          invoice_date: form.invoice_date,
-        }),
+      await apiPost('/admin/outbounds', {
+        order_number: form.order_number,
+        product_id: Number(form.product_id),
+        quantity: Number(form.quantity),
+        invoice_date: form.invoice_date,
       });
 
       alert("Outbound berhasil ditambahkan!");

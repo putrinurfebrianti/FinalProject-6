@@ -52,6 +52,12 @@ export default function AdminBranchStock() {
           },
         });
 
+        if (!response.ok) {
+          if (response.status === 403) {
+            throw new Error('Akses terlarang: Admin belum memilih cabang.');
+          }
+          throw new Error('Gagal mengambil data stok cabang.');
+        }
         const data = await response.json();
         console.log("DATA API STOCK:", data);
 

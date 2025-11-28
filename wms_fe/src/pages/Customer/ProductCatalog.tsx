@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { apiGet } from "../../utils/api";
 
 interface Product {
   id: number;
@@ -44,15 +45,9 @@ export default function ProductCatalog() {
       setError(null);
 
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/products", {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Accept": "application/json",
-          },
-        });
+          const response = await apiGet('/products');
 
-        if (!response.ok) {
+          if (!response.ok) {
           if (response.status === 401) {
             throw new Error("Sesi Anda telah habis. Silakan login kembali.");
           }
