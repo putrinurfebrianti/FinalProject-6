@@ -18,7 +18,7 @@ export default function UserAddressCard() {
                   User ID
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  Indonesia
+                  #{user?.id || "-"}
                 </p>
               </div>
 
@@ -27,7 +27,7 @@ export default function UserAddressCard() {
                   Account Type
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  Bogor
+                  {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "-"}
                 </p>
               </div>
 

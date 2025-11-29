@@ -141,7 +141,7 @@ export default function CustomerDashboard() {
           Lihat katalog produk kami dan buat pesanan baru.
         </p>
         <Link 
-          to="/books" 
+          to="/products" 
           className="inline-block px-6 py-2 text-white transition bg-herbalife-600 rounded-lg hover:bg-herbalife-700 dark:bg-herbalife-500 dark:hover:bg-herbalife-600"
         >
           Lihat Katalog Produk Sekarang →

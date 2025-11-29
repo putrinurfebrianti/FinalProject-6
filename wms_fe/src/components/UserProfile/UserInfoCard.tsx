@@ -57,7 +57,7 @@ export default function UserInfoCard() {
                 First Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Supervisor
+                {getFirstName()}
               </p>
             </div>
 
@@ -66,7 +66,7 @@ export default function UserInfoCard() {
                 Last Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Bogor
+                {getLastName()}
               </p>
             </div>
 
@@ -75,7 +75,7 @@ export default function UserInfoCard() {
                 Email address
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                supervisor.bogor@gmail.com
+                {user?.email || "-"}
               </p>
             </div>
 
@@ -93,7 +93,7 @@ export default function UserInfoCard() {
                 Role
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Supervisor
+                {getRoleDisplay(user?.role)}
               </p>
             </div>
           </div>

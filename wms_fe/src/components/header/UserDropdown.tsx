@@ -65,18 +65,25 @@ const UserDropdown: React.FC = () => {
             <li>
               <Link
                 to="/profile"
-                className="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-brand-500 dark:hover:text-brand-500"
+                className="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-herbalife-600 dark:hover:text-herbalife-500"
+                onClick={() => setIsOpen(false)}
               >
-                Edit profile
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Profil Saya
               </Link>
             </li>
           </ul>
           
           <button
             onClick={logout}
-            className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-brand-500 dark:hover:text-brand-500"
+            className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-red-500 dark:hover:text-red-500"
           >
-            Sign out
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Keluar
           </button>
         </div>
       )}

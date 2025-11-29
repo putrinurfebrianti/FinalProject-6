@@ -60,7 +60,7 @@ export default function App() {
             {/* ==== CUSTOMER ONLY ==== */}
             <Route element={<CustomerRoute />}>
               <Route path="/" element={<CustomerDashboard />} />
-              <Route path="/books" element={<ProductCatalog />} />
+              <Route path="/products" element={<ProductCatalog />} />
               <Route path="/order" element={<OrderForm />} />
               <Route path="/my-orders" element={<MyOrders />} />
             </Route>

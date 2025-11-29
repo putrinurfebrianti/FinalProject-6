@@ -7,24 +7,58 @@ interface Product {
   name: string;
   sku: string;
   price: number;
+  category: string;
+  image: string | null;
   central_stock: number;
 }
 
 const ProductCard = ({ product }: { product: Product }) => {
+  // Placeholder SVG sebagai data URL (tidak perlu internet)
+  const placeholderImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect width='300' height='300' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='18' fill='%239ca3af'%3ENo Image%3C/text%3E%3C/svg%3E";
+  
+  const imageUrl = product.image 
+    ? `http://127.0.0.1:8000/${product.image}` 
+    : placeholderImage;
+
   return (
-    <div className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 dark:bg-gray-800">
-      <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-        {product.name}
-      </h3>
-      <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-        SKU: {product.sku}
-      </p>
-      <p className="mb-2 text-xl font-bold text-gray-900 dark:text-white">
-        Rp {product.price?.toLocaleString('id-ID') || '-'}
-      </p>
-      <p className="text-sm text-gray-600 dark:text-gray-400">
-        Stok Pusat: {product.central_stock || 0}
-      </p>
+    <div className="overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 dark:bg-gray-800 hover:shadow-md">
+      {/* Product Image */}
+      <div className="w-full overflow-hidden bg-gray-100 aspect-square dark:bg-gray-700">
+        <img 
+          src={imageUrl} 
+          alt={product.name}
+          className="object-cover w-full h-full"
+          onError={(e) => {
+            e.currentTarget.src = placeholderImage;
+          }}
+        />
+      </div>
+      
+      {/* Product Info */}
+      <div className="p-4">
+        <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
+          {product.name}
+        </h3>
+        <p className="mb-1 text-xs text-gray-500 dark:text-gray-400">
+          SKU: {product.sku}
+        </p>
+        <p className="mb-1 text-xs font-medium text-herbalife-600 dark:text-herbalife-400">
+          {product.category}
+        </p>
+        <p className="mb-3 text-xl font-bold text-gray-900 dark:text-white">
+          Rp {product.price?.toLocaleString('id-ID') || '-'}
+        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Stok: <span className="font-semibold">{product.central_stock || 0}</span>
+          </p>
+          {product.central_stock > 0 && (
+            <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded dark:bg-green-900 dark:text-green-300">
+              Tersedia
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

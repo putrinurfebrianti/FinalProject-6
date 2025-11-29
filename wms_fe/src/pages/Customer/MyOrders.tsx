@@ -31,7 +31,7 @@ export default function MyOrders() {
       setError(null);
 
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/user/orders/history", {
+        const response = await fetch("http://127.0.0.1:8000/api/user/orders", {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -95,46 +95,57 @@ export default function MyOrders() {
       {error && <p className="text-red-500">Error: {error}</p>}
 
       {orders && orders.length > 0 && (
-        <div className="space-y-4">
-          {orders.map((order) => (
-            <div key={order.id} className="p-6 bg-white border border-gray-200 rounded-lg dark:border-gray-700 dark:bg-gray-800">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Order #{order.id}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Cabang: {order.branch_name}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Tanggal: {new Date(order.created_at).toLocaleDateString('id-ID')}
-                  </p>
-                </div>
-                <div>
-                  {getStatusBadge(order.status)}
-                </div>
-              </div>
-
-              {order.items && order.items.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="mb-2 font-medium text-gray-900 dark:text-white">Item:</h4>
-                  <ul className="space-y-1">
-                    {order.items.map((item) => (
-                      <li key={item.id} className="text-sm text-gray-600 dark:text-gray-400">
-                        {item.product_name} - {item.quantity}x @ Rp {item.price?.toLocaleString('id-ID')}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Total: Rp {order.total_amount?.toLocaleString('id-ID')}
-                </p>
-              </div>
-            </div>
-          ))}
+        <div className="overflow-x-auto bg-white border border-gray-200 rounded-lg dark:border-gray-700 dark:bg-gray-800">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+              <tr>
+                <th className="px-6 py-3">Order ID</th>
+                <th className="px-6 py-3">Cabang</th>
+                <th className="px-6 py-3">Tanggal</th>
+                <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3">Total</th>
+                <th className="px-6 py-3">Item</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((order) => (
+                <tr key={order.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                    #{order.id}
+                  </td>
+                  <td className="px-6 py-4">
+                    {order.branch_name}
+                  </td>
+                  <td className="px-6 py-4">
+                    {new Date(order.created_at).toLocaleDateString('id-ID', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    })}
+                  </td>
+                  <td className="px-6 py-4">
+                    {getStatusBadge(order.status)}
+                  </td>
+                  <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
+                    Rp {order.total_amount?.toLocaleString('id-ID') || 0}
+                  </td>
+                  <td className="px-6 py-4">
+                    {order.items && order.items.length > 0 ? (
+                      <div className="space-y-1">
+                        {order.items.map((item, idx) => (
+                          <div key={idx} className="text-xs text-gray-600 dark:text-gray-400">
+                            {item.product_name} ({item.quantity}x)
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-gray-500">-</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 

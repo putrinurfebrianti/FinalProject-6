@@ -127,7 +127,7 @@ const userNavItems: NavItem[] = [
   {
     icon: <BoxCubeIcon />,
     name: "Katalog Produk",
-    path: "/books",
+    path: "/products",
   },
   {
     icon: <ListIcon />,
@@ -136,8 +136,8 @@ const userNavItems: NavItem[] = [
   },
   {
     icon: <TableIcon />,
-    name: "Profil Saya",
-    path: "/profile",
+    name: "Pesanan Saya",
+    path: "/my-orders",
   },
 ];
 

@@ -7,7 +7,7 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['sku', 'name', 'category', 'price', 'central_stock'];
+    protected $fillable = ['sku', 'name', 'category', 'price', 'image', 'central_stock'];
 
     public function branchStocks()
     {
