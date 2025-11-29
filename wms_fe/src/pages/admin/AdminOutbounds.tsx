@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { apiGet, apiPost } from "../../utils/api";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 interface Outbound {
   id: number;
@@ -16,7 +18,6 @@ interface Outbound {
   };
 }
 
-// Normalisasi supaya aman untuk semua bentuk API backend
 const normalizeOutbounds = (data: any): Outbound[] => {
   if (Array.isArray(data)) return data;
   if (Array.isArray(data.outbounds)) return data.outbounds;
@@ -35,15 +36,14 @@ export default function AdminOutbounds() {
     order_number: "",
     product_id: "",
     quantity: "",
-    invoice_date: "",
+    invoice_date: null as Date | null,
   });
 
-  // ---- Fetch Outbounds ----
   const loadOutbounds = async () => {
     if (!token) return;
 
     try {
-      const res = await apiGet('/admin/outbounds');
+      const res = await apiGet("/admin/outbounds");
       const data = await res.json();
       setOutbounds(normalizeOutbounds(data));
     } catch (err) {
@@ -57,21 +57,23 @@ export default function AdminOutbounds() {
     loadOutbounds();
   }, [token]);
 
-  // ---- Submit Form ----
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
     try {
-      await apiPost('/admin/outbounds', {
+      await apiPost("/admin/outbounds", {
         order_number: form.order_number,
         product_id: Number(form.product_id),
         quantity: Number(form.quantity),
-        invoice_date: form.invoice_date,
+
+        // Convert date → "yyyy-mm-dd"
+        invoice_date: form.invoice_date
+          ? form.invoice_date.toISOString().split("T")[0]
+          : "",
       });
 
       alert("Outbound berhasil ditambahkan!");
 
-      // ✔ Ambil ulang data tabel dari backend (supaya product & status lengkap)
       await loadOutbounds();
 
       setShowForm(false);
@@ -79,7 +81,7 @@ export default function AdminOutbounds() {
         order_number: "",
         product_id: "",
         quantity: "",
-        invoice_date: "",
+        invoice_date: null,
       });
     } catch (err) {
       alert("Gagal menambahkan outbound!");
@@ -99,7 +101,6 @@ export default function AdminOutbounds() {
         </button>
       </div>
 
-      {/* ---------------- TABLE ---------------- */}
       {loading ? (
         <p>Memuat...</p>
       ) : (
@@ -146,13 +147,13 @@ export default function AdminOutbounds() {
         </div>
       )}
 
-      {/* ---------------- FORM POPUP ---------------- */}
       {showForm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white shadow-lg rounded-lg p-6 w-[420px]">
             <h2 className="text-xl font-semibold mb-4">Tambah Outbound</h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              
               <input
                 type="text"
                 placeholder="Order Number"
@@ -186,13 +187,13 @@ export default function AdminOutbounds() {
                 required
               />
 
-              <input
-                type="date"
-                value={form.invoice_date}
-                onChange={(e) =>
-                  setForm({ ...form, invoice_date: e.target.value })
-                }
+              {/* MINI CALENDAR */}
+              <DatePicker
+                selected={form.invoice_date}
+                onChange={(date) => setForm({ ...form, invoice_date: date })}
                 className="w-full border p-2 rounded"
+                dateFormat="yyyy-MM-dd"
+                placeholderText="Pilih Tanggal"
                 required
               />
 

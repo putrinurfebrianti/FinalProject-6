@@ -13,23 +13,12 @@ interface BranchStock {
   };
 }
 
-// 🧩 Fungsi normalisasi agar FE tidak error apapun bentuk response backend-nya
+// 🧩 Normalisasi response backend agar tidak error
 const normalizeStocks = (data: any): BranchStock[] => {
-  console.log("NORMALIZE INPUT:", data);
-
-  // Case: array langsung
   if (Array.isArray(data)) return data;
-
-  // Case: { stocks: [...] }
   if (Array.isArray(data?.stocks)) return data.stocks;
-
-  // Case: { data: [...] }
   if (Array.isArray(data?.data)) return data.data;
-
-  // Case: single object → buat jadi array
   if (data && typeof data === "object") return [data];
-
-  // Default jika aneh
   return [];
 };
 
@@ -54,16 +43,13 @@ export default function AdminBranchStock() {
 
         if (!response.ok) {
           if (response.status === 403) {
-            throw new Error('Akses terlarang: Admin belum memilih cabang.');
+            throw new Error("Akses terlarang: Admin belum memilih cabang.");
           }
-          throw new Error('Gagal mengambil data stok cabang.');
+          throw new Error("Gagal mengambil data stok cabang.");
         }
+
         const data = await response.json();
-        console.log("DATA API STOCK:", data);
-
-        // 🟦 FIX: normalisasi supaya stocks selalu array
         const fixedStocks = normalizeStocks(data);
-
         setStocks(fixedStocks);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Terjadi error.");
@@ -80,27 +66,78 @@ export default function AdminBranchStock() {
       <h1 className="text-2xl font-semibold">Stok Cabang Anda</h1>
 
       {loading && <p>Memuat data stok...</p>}
-
       {error && <p className="text-red-500">{error}</p>}
 
       {!loading && !error && stocks.length > 0 && (
         <div className="overflow-x-auto">
-          <table className="w-full text-left border border-gray-300 divide-y divide-gray-300">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-4 py-2">#</th>
-                <th className="px-4 py-2">Produk</th>
-                <th className="px-4 py-2">SKU</th>
-                <th className="px-4 py-2">Stok</th>
+
+          {/* ============================ */}
+          {/*        TABEL ELEGAN          */}
+          {/* ============================ */}
+
+          <table className="w-full border border-gray-300 text-xs rounded-lg shadow-md">
+            <thead>
+              <tr className="bg-[#A7DCA5] text-black font-semibold text-center">
+                <th className="border border-gray-300 px-3 py-2">NO.</th>
+                <th className="border border-gray-300 px-3 py-2">SKU</th>
+                <th className="border border-gray-300 px-3 py-2">DESKRIPSI JENIS</th>
+                <th className="border border-gray-300 px-3 py-2">LOT</th>
+                <th className="border border-gray-300 px-3 py-2">STOCK AWAL</th>
+
+                {/* LBR D01–D08 */}
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <th
+                    key={i}
+                    className="border border-gray-300 px-3 py-2 bg-[#FFB8B8] text-black"
+                  >
+                    LBR D0{i + 1}
+                  </th>
+                ))}
               </tr>
             </thead>
+
             <tbody>
               {stocks.map((item, index) => (
-                <tr key={item.id} className="border-t">
-                  <td className="px-4 py-2">{index + 1}</td>
-                  <td className="px-4 py-2">{item.product?.name || "-"}</td>
-                  <td className="px-4 py-2">{item.product?.sku || "-"}</td>
-                  <td className="px-4 py-2">{item.stock}</td>
+                <tr
+                  key={item.id}
+                  className="border border-gray-300"
+                  style={{
+                    background: index % 2 === 0 ? "#F7F7F7" : "#ECECEC",
+                  }}
+                >
+                  <td className="border border-gray-300 px-3 py-2 text-center">
+                    {index + 1}
+                  </td>
+
+                  <td className="border border-gray-300 px-3 py-2 text-center">
+                    {item.product?.sku}
+                  </td>
+
+                  <td className="border border-gray-300 px-3 py-2">
+                    {item.product?.name}
+                  </td>
+
+                  <td className="border border-gray-300 px-3 py-2 text-center">
+                    LOT-XXXX
+                  </td>
+
+                  <td className="border border-gray-300 px-3 py-2 text-center">
+                    {item.stock}
+                  </td>
+
+                  {/* Kolom warna pastel D01–D08 */}
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <td
+                      key={i}
+                      className="border border-gray-300 px-3 py-2 text-center font-semibold"
+                      style={{
+                        background: "#FFE8E8",
+                        color: "#444",
+                      }}
+                    >
+                      0
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>
