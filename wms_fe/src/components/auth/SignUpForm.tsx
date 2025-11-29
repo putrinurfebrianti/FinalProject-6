@@ -11,6 +11,18 @@ export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
 
+  // 🔥 Tambahan: handle submit
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!isChecked) {
+      alert("You must agree to the Terms & Conditions.");
+      return;
+    }
+
+    alert("Form submitted! (tambahkan API fetch disini)");
+  };
+
   return (
     <div className="flex flex-col flex-1 bg-[#F0FFF7] dark:bg-gray-900">
       {/* Back */}
@@ -50,7 +62,7 @@ export default function SignUpForm() {
           </div>
 
           {/* Form */}
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="space-y-6">
               {/* Name */}
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -84,7 +96,10 @@ export default function SignUpForm() {
                 </Label>
 
                 <div className="relative">
-                  <Input type={showPassword ? "text" : "password"} placeholder="password123" />
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="your password"
+                  />
 
                   <span
                     onClick={() => setShowPassword(!showPassword)}
@@ -110,7 +125,9 @@ export default function SignUpForm() {
 
               {/* Submit */}
               <div>
+                {/* 🔥 Tambahan type="submit" */}
                 <Button
+                  type="submit"
                   className="w-full bg-[#2ac45b] hover:bg-[#3bde64] text-gray-800
                              dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
                   size="sm"

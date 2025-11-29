@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
+import { ChevronLeftIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
@@ -38,45 +38,31 @@ export default function SignInForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data.message || "Login Gagal. Cek email atau password."
-        );
+        throw new Error(data.message || "Login Gagal. Cek email atau password.");
       }
 
-      console.log("Login sukses:", data);
-
-      // simpan token dan user
-      // isChecked: true -> remember localStorage, false -> sessionStorage
       login(data.access_token, data.user, isChecked);
 
-      // === ROLE BASED REDIRECT ===
       switch (data.user.role) {
         case "supervisor":
           navigate("/supervisor/dashboard");
           break;
-
         case "customer":
-          navigate("/"); // dashboard customer
+          navigate("/");
           break;
-
         case "admin":
           navigate("/admin/dashboard");
           break;
         case "superadmin":
           navigate("/superadmin/dashboard");
           break;
-
         case "user":
         default:
           navigate("/");
       }
-
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Terjadi error yang tidak diketahui.");
-      }
+      if (err instanceof Error) setError(err.message);
+      else setError("Terjadi error yang tidak diketahui.");
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +87,7 @@ export default function SignInForm() {
               Sign In
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Enter your email and password to sign in!
+              Enter your email and password to SignIn!
             </p>
           </div>
 
@@ -119,6 +105,8 @@ export default function SignInForm() {
 
             <form onSubmit={handleSubmit}>
               <div className="space-y-6">
+
+                {/* EMAIL */}
                 <div>
                   <Label>Email *</Label>
                   <Input
@@ -126,34 +114,63 @@ export default function SignInForm() {
                     placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    required
                   />
                 </div>
 
+                {/* PASSWORD */}
                 <div>
                   <Label>Password *</Label>
                   <div className="relative">
                     <Input
                       type={showPassword ? "text" : "password"}
-                      placeholder="password123"
+                      placeholder="your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      required
                     />
 
                     <span
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
                     >
                       {showPassword ? (
-                        <EyeIcon className="size-5" />
+                        // Eye Closed
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="22"
+                          height="22"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.68 21.68 0 0 1 5.06-7.94" />
+                          <path d="M1 1l22 22" />
+                          <path d="M9.88 9.88A3 3 0 0 1 12 9a3 3 0 0 1 3 3c0 .62-.19 1.19-.5 1.66" />
+                        </svg>
                       ) : (
-                        <EyeCloseIcon className="size-5" />
+                        // Eye Open
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="22"
+                          height="22"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
                       )}
                     </span>
                   </div>
                 </div>
 
+                {/* REMEMBER ME + FORGOT */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Checkbox checked={isChecked} onChange={setIsChecked} />
@@ -170,10 +187,12 @@ export default function SignInForm() {
                   </Link>
                 </div>
 
+                {/* ERROR */}
                 {error && (
                   <p className="text-sm text-center text-red-500">{error}</p>
                 )}
 
+                {/* BUTTON */}
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Signing In..." : "Sign In"}
                 </Button>
