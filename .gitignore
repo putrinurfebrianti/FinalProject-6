@@ -1,0 +1,42 @@
+# Laravel specific
+/wms_api/vendor/
+/wms_api/node_modules/
+/wms_api/.env
+/wms_api/storage/*.key
+/wms_api/storage/app/*
+!/wms_api/storage/app/.gitignore
+!/wms_api/storage/app/public
+/wms_api/storage/framework/cache/*
+!/wms_api/storage/framework/cache/.gitignore
+/wms_api/storage/framework/sessions/*
+!/wms_api/storage/framework/sessions/.gitignore
+/wms_api/storage/framework/views/*
+!/wms_api/storage/framework/views/.gitignore
+/wms_api/storage/logs/*
+!/wms_api/storage/logs/.gitignore
+/wms_api/bootstrap/cache/*
+!/wms_api/bootstrap/cache/.gitignore
+
+# Keep product images - DO NOT IGNORE
+# /wms_api/public/images/products/*
+
+# Frontend specific
+/wms_fe/node_modules/
+/wms_fe/dist/
+/wms_fe/.env
+/wms_fe/.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
