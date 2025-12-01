@@ -4,6 +4,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\ActivityLog;
+use App\Events\NotificationEvent;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -49,6 +50,19 @@ class AuthController extends Controller
             'action' => 'REGISTER',
             'description' => 'User ' . $user->name . ' berhasil terdaftar dengan role ' . $user->role
         ]);
+
+        // Notify superadmins about new user registration (queued)
+        try {
+            $superadmins = \App\Models\User::where('role', 'superadmin')->get();
+            $payload = ['user_id' => $user->id, 'role' => $user->role, 'branch_id' => $user->branch_id, 'name' => $user->name];
+            event(new NotificationEvent($superadmins, $user->id, 'user_registered', $payload));
+        } catch (\Exception $e) {
+            ActivityLog::create([
+                'user_id' => $user->id,
+                'action' => 'NOTIFY_FAILED',
+                'description' => 'Failed to dispatch notification event for new user registration: ' . $e->getMessage()
+            ]);
+        }
 
         return response()->json(['status' => 'success', 'message' => 'User registered successfully', 'user' => $user], 201);
     }

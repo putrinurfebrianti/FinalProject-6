@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ActivityLog;
+use App\Events\NotificationEvent;
 
 class InboundController extends Controller
 {
@@ -51,6 +52,21 @@ class InboundController extends Controller
                 'action' => 'CREATE_INBOUND',
                 'description' => 'Superadmin mengirim ' . $request->quantity . ' unit SKU ' . $product->sku . ' ke Cabang ' . $request->branch_id
             ]);
+
+            // Notify branch admins and superadmins via queued event (includes names)
+            $recipients = \App\Models\User::where('role', 'admin')->where('branch_id', $request->branch_id)->get();
+            $superadmins = \App\Models\User::where('role', 'superadmin')->get();
+            $recipients = $recipients->merge($superadmins);
+            try {
+                $branchName = \App\Models\Branch::find($request->branch_id)->name ?? null;
+                event(new NotificationEvent($recipients, Auth::id(), 'inbound_created', ['inbound_id' => $inbound->id, 'branch_id' => $request->branch_id, 'branch_name' => $branchName, 'quantity' => $request->quantity, 'product_id' => $product->id, 'product_name' => $product->name]));
+            } catch (\Exception $e) {
+                ActivityLog::create([
+                    'user_id' => Auth::id(),
+                    'action' => 'NOTIFY_FAILED',
+                    'description' => 'Failed to dispatch notification event for inbound id ' . $inbound->id
+                ]);
+            }
 
             DB::commit();
             return response()->json(['message' => 'Inbound berhasil dibuat dan stok cabang diupdate', 'data' => $inbound], 201);
@@ -110,7 +126,31 @@ class InboundController extends Controller
                     'description' => 'Superadmin mengirim ' . $item['quantity'] . ' unit SKU ' . $product->sku . ' ke Cabang ' . $request->branch_id
                 ]);
 
-                $created[] = $inbound;
+                    // Notify branch admins and superadmins for each created inbound
+                    try {
+                        $recipients = \App\Models\User::where('role', 'admin')->where('branch_id', $request->branch_id)->get();
+                        $superadmins = \App\Models\User::where('role', 'superadmin')->get();
+                        $recipients = $recipients->merge($superadmins);
+                        try {
+                            $branchName = \App\Models\Branch::find($request->branch_id)->name ?? null;
+                            event(new NotificationEvent($recipients, Auth::id(), 'inbound_created', ['inbound_id' => $inbound->id, 'branch_id' => $request->branch_id, 'branch_name' => $branchName, 'quantity' => $item['quantity'], 'product_id' => $product->id, 'product_name' => $product->name]));
+                        } catch (\Exception $nex) {
+                            ActivityLog::create([
+                                'user_id' => Auth::id(),
+                                'action' => 'NOTIFY_FAILED',
+                                'description' => 'Failed to dispatch notification event for inbound id ' . $inbound->id . ': ' . $nex->getMessage()
+                            ]);
+                        }
+                    } catch (\Exception $nex) {
+                        // don't break the bulk creation if notification fails, but log to activity
+                        ActivityLog::create([
+                            'user_id' => Auth::id(),
+                            'action' => 'NOTIFY_FAILED',
+                            'description' => 'Failed to notify for inbound id ' . $inbound->id . ': ' . $nex->getMessage()
+                        ]);
+                    }
+
+                    $created[] = $inbound;
             }
 
             DB::commit();

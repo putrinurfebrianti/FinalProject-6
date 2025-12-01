@@ -33,6 +33,7 @@ const SuperadminBranchStock = () => {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   
   // State untuk Modal/Form Edit
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,7 +55,7 @@ const SuperadminBranchStock = () => {
       console.debug('SuperadminBranchStock fetch call - axios defaults', axios.defaults);
       const response = await axios.get('/superadmin/branch-stock');
       setStockList(response.data.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Gagal ambil data stok cabang:", error);
       if (error.response) {
         console.error('Error status/data:', error.response.status, error.response.data);
@@ -68,6 +69,12 @@ const SuperadminBranchStock = () => {
     fetchBranchStock();
   }, []);
 
+  // Debounce the search input so we don't filter on every keystroke
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearchTerm(searchTerm.trim().toLowerCase()), 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
   // build expanded initial state when stockList changes (open all branches by default)
   useEffect(() => {
     const initial: Record<number, boolean> = {};
@@ -76,6 +83,29 @@ const SuperadminBranchStock = () => {
     });
     setExpanded(initial);
   }, [stockList]);
+
+  // Pre-compute grouped and filtered data so we can show total matches in header, etc.
+  const groups = stockList.reduce((acc: Record<number, BranchStock[]>, item) => {
+    if (!acc[item.branch.id]) acc[item.branch.id] = [];
+    acc[item.branch.id].push(item);
+    return acc;
+  }, {} as Record<number, BranchStock[]>);
+
+  const filteredGroups: Record<number, BranchStock[]> = Object.keys(groups).reduce((acc, k) => {
+    const key = parseInt(k);
+    const items = groups[key];
+    const filtered = debouncedSearchTerm
+      ? items.filter((it) => {
+          const name = (it.product?.name || "").toLowerCase();
+          const sku = (it.product?.sku || "").toLowerCase();
+          return name.includes(debouncedSearchTerm) || sku.includes(debouncedSearchTerm);
+        })
+      : items;
+    if (filtered.length > 0) acc[key] = filtered;
+    return acc;
+  }, {} as Record<number, BranchStock[]>);
+
+  const totalMatches = Object.values(filteredGroups).reduce((s, arr) => s + arr.length, 0);
 
   // Handle Input Form
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -193,10 +223,17 @@ const SuperadminBranchStock = () => {
                 placeholder="Cari produk (nama/SKU)..."
                 className="rounded border border-stroke px-3 py-2 text-sm outline-none focus:border-primary"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+              {searchTerm ? (
+                <button onClick={() => setSearchTerm("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">✖</button>
+              ) : (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+              )}
+            </div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 ml-3">
+              {debouncedSearchTerm ? `${totalMatches} hasil` : `${Object.keys(groups).length} cabang`}
             </div>
             <button onClick={() => {
-                const branchIds = Array.from(new Set(stockList.map(s => s.branch.id)));
+                const branchIds = Object.keys(filteredGroups).map(k => parseInt(k));
                 const anyCollapsed = branchIds.some(id => !expanded[id]);
                 const next: Record<number, boolean> = {};
                 branchIds.forEach(id => next[id] = anyCollapsed);
@@ -204,7 +241,7 @@ const SuperadminBranchStock = () => {
               }}
               className="text-sm rounded border px-3 py-1 text-black bg-gray-100 hover:bg-gray-200"
             >
-              {Object.keys(expanded).some(k => !expanded[parseInt(k)]) ? 'Expand All' : 'Collapse All'}
+              {Object.keys(filteredGroups).some(k => !expanded[parseInt(k)]) ? 'Expand All' : 'Collapse All'}
             </button>
           </div>
         </div>
@@ -225,6 +262,8 @@ const SuperadminBranchStock = () => {
                 <tr><td colSpan={6} className="text-center py-5">Loading...</td></tr>
               ) : stockList.length === 0 ? (
                 <tr><td colSpan={6} className="text-center py-5">Belum ada stok di cabang manapun. (Silakan buat Inbound).</td></tr>
+              ) : totalMatches === 0 ? (
+                <tr><td colSpan={6} className="text-center py-5">Tidak ditemukan produk untuk kata kunci pencarian tersebut.</td></tr>
               ) : (
                 // group the stocks by branch id
                 (() => {
@@ -234,15 +273,30 @@ const SuperadminBranchStock = () => {
                     return acc;
                   }, {} as Record<number, BranchStock[]>);
 
-                  return Object.keys(groups)
+                  // Apply search filter (debounced) to items and hide empty groups
+                  const filteredGroups: Record<number, BranchStock[]> = Object.keys(groups).reduce((acc, k) => {
+                    const key = parseInt(k);
+                    const items = groups[key];
+                    const filtered = debouncedSearchTerm
+                      ? items.filter((it) => {
+                          const name = (it.product?.name || "").toLowerCase();
+                          const sku = (it.product?.sku || "").toLowerCase();
+                          return name.includes(debouncedSearchTerm) || sku.includes(debouncedSearchTerm);
+                        })
+                      : items;
+                    if (filtered.length > 0) acc[key] = filtered;
+                    return acc;
+                  }, {} as Record<number, BranchStock[]>);
+
+                  return Object.keys(filteredGroups)
                     .sort((a, b) => {
-                      const aName = groups[parseInt(a)][0]?.branch?.name ?? "";
-                      const bName = groups[parseInt(b)][0]?.branch?.name ?? "";
+                      const aName = filteredGroups[parseInt(a)][0]?.branch?.name ?? "";
+                      const bName = filteredGroups[parseInt(b)][0]?.branch?.name ?? "";
                       return aName.localeCompare(bName);
                     })
                     .map((branchIdStr) => {
                     const branchId = parseInt(branchIdStr);
-                    const items = groups[branchId];
+                    const items = filteredGroups[branchId];
                     const sortedItems = [...items].sort((x, y) => (x.product.name || "").localeCompare(y.product.name || ""));
                     const branchName = items[0]?.branch?.name ?? "(Unknown)";
                     const totalStock = items.reduce((s, it) => s + (it.stock || 0), 0);

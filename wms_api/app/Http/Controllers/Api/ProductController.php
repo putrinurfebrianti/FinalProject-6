@@ -4,6 +4,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use App\Models\ActivityLog;
+use App\Events\NotificationEvent;
 
 class ProductController extends Controller
 {
@@ -26,6 +29,21 @@ class ProductController extends Controller
         }
 
         $product = Product::create($request->all());
+
+        // Notify superadmins and branch admins about new product (queued)
+        try {
+            $superadmins = \App\Models\User::where('role', 'superadmin')->get();
+            $admins = \App\Models\User::where('role', 'admin')->get();
+            $recipients = $superadmins->merge($admins);
+            $payload = ['product_id' => $product->id, 'sku' => $product->sku, 'name' => $product->name];
+            event(new NotificationEvent($recipients, Auth::id() ?? null, 'product_created', $payload));
+        } catch (\Exception $e) {
+            ActivityLog::create([
+                'user_id' => Auth::id() ?? null,
+                'action' => 'NOTIFY_FAILED',
+                'description' => 'Failed to notify product creation for product ' . $product->id . ': ' . $e->getMessage()
+            ]);
+        }
         return response()->json(['status' => 'success', 'data' => $product], 201);
     }
 
@@ -48,12 +66,42 @@ class ProductController extends Controller
         }
 
         $product->update($request->all());
+
+        // Notify superadmins and branch admins about updated product (queued)
+        try {
+            $superadmins = \App\Models\User::where('role', 'superadmin')->get();
+            $admins = \App\Models\User::where('role', 'admin')->get();
+            $recipients = $superadmins->merge($admins);
+            $payload = ['product_id' => $product->id, 'sku' => $product->sku, 'name' => $product->name];
+            event(new NotificationEvent($recipients, Auth::id() ?? null, 'product_updated', $payload));
+        } catch (\Exception $e) {
+            ActivityLog::create([
+                'user_id' => Auth::id() ?? null,
+                'action' => 'NOTIFY_FAILED',
+                'description' => 'Failed to notify product update for product ' . $product->id . ': ' . $e->getMessage()
+            ]);
+        }
         return response()->json(['status' => 'success', 'data' => $product]);
     }
 
     public function destroy(Product $product)
     {
         $product->delete();
+
+        // Notify superadmins and branch admins about deleted product (queued)
+        try {
+            $superadmins = \App\Models\User::where('role', 'superadmin')->get();
+            $admins = \App\Models\User::where('role', 'admin')->get();
+            $recipients = $superadmins->merge($admins);
+            $payload = ['product_id' => $product->id, 'sku' => $product->sku, 'name' => $product->name];
+            event(new NotificationEvent($recipients, Auth::id() ?? null, 'product_deleted', $payload));
+        } catch (\Exception $e) {
+            ActivityLog::create([
+                'user_id' => Auth::id() ?? null,
+                'action' => 'NOTIFY_FAILED',
+                'description' => 'Failed to notify product deletion for product ' . $product->id . ': ' . $e->getMessage()
+            ]);
+        }
         return response()->json(['status' => 'success', 'message' => 'Product deleted successfully']);
     }
 }

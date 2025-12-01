@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
@@ -44,7 +44,7 @@ const SuperadminDashboard = () => {
         // Ambil 5 data terbaru saja
         setLogs(logsRes.data.data.slice(0, 5));
         
-      } catch (error) {
+    } catch (error: any) {
         console.error("Gagal load dashboard:", error);
       } finally {
         setLoading(false);

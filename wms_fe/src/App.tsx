@@ -24,7 +24,7 @@ import SupervisorReports from "./pages/Supervisor/SupervisorReports";
 
 // === ADMIN PAGES ===
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminBranchStock from "./pages/admin/AdminBranchStock";
+import AdminBranchStock from "./pages/admin/AdminBranchStock2";
 import AdminOutbounds from "./pages/admin/AdminOutbounds";
 import AdminReports from "./pages/admin/AdminReports";
 

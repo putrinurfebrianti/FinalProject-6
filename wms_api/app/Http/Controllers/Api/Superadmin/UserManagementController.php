@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use App\Models\ActivityLog;
+use App\Events\NotificationEvent;
 use Illuminate\Validation\Rule;
 
 class UserManagementController extends Controller
@@ -59,6 +61,17 @@ class UserManagementController extends Controller
 
         $user->update($userData);
 
+        // Notify the updated user about changes (queued)
+        try {
+            event(new NotificationEvent([$user->id], Auth::id(), 'user_updated', ['user_id' => $user->id, 'role' => $user->role, 'name' => $user->name]));
+        } catch (\Exception $e) {
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'NOTIFY_FAILED',
+                'description' => 'Failed to notify user update for user id ' . $user->id . ': ' . $e->getMessage()
+            ]);
+        }
+
         return response()->json(['status' => 'success', 'message' => 'User updated successfully', 'data' => $user]);
     }
 
@@ -72,6 +85,18 @@ class UserManagementController extends Controller
         }
 
         $user->delete();
+
+        // Notify superadmins that a user was deleted (queued)
+        try {
+            $superadmins = \App\Models\User::where('role', 'superadmin')->get();
+            event(new NotificationEvent($superadmins, Auth::id() ?? null, 'user_deleted', ['deleted_user_id' => $user->id, 'deleted_user_name' => $user->name]));
+        } catch (\Exception $e) {
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'NOTIFY_FAILED',
+                'description' => 'Failed to notify user deletion for user id ' . $user->id . ': ' . $e->getMessage()
+            ]);
+        }
         return response()->json(['status' => 'success', 'message' => 'User deleted successfully']);
     }
 }

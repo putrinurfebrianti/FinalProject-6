@@ -34,6 +34,11 @@ Route::post('/register', [AuthController::class, 'register']);
 // RUTE YANG BUTUH LOGIN (ROLE APAPUN)
 // ====================================================
 Route::middleware('auth:sanctum')->group(function () {
+        // Notifications
+        Route::get('/notifications', [App\Http\Controllers\Api\NotificationController::class, 'index']);
+        Route::patch('/notifications/{id}/read', [App\Http\Controllers\Api\NotificationController::class, 'markRead']);
+        Route::patch('/notifications/read-all', [App\Http\Controllers\Api\NotificationController::class, 'markAllRead']);
+
     Route::get('/user', fn(Request $request) => $request->user());
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{product}', [ProductController::class, 'show']);

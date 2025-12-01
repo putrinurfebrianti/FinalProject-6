@@ -8,6 +8,7 @@ use App\Models\Inbound;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Events\NotificationEvent;
 
 class ReportController extends Controller
 {
@@ -70,6 +71,22 @@ class ReportController extends Controller
             'is_verified' => false,
             'data' => $reportData
         ]);
+
+        // Notify supervisors of the branch and superadmins via queued notification
+        try {
+            $supervisors = \App\Models\User::where('role', 'supervisor')->where('branch_id', $adminBranchId)->get();
+            $superadmins = \App\Models\User::where('role', 'superadmin')->get();
+            $recipients = $supervisors->merge($superadmins);
+            $branchName = \App\Models\Branch::find($adminBranchId)->name ?? null;
+            event(new NotificationEvent($recipients, $admin->id, 'report_created', ['report_id' => $report->id, 'branch_id' => $adminBranchId, 'branch_name' => $branchName, 'report_date' => $report->report_date, 'report_type' => 'harian', 'generated_by' => $admin->name]));
+        } catch (\Exception $e) {
+            // Log notification failure
+            \App\Models\ActivityLog::create([
+                'user_id' => $admin->id,
+                'action' => 'NOTIFY_FAILED',
+                'description' => 'Failed to dispatch notification event for report id ' . $report->id . ': ' . $e->getMessage()
+            ]);
+        }
 
         return response()->json(['message' => 'Laporan harian berhasil dibuat', 'data' => $report], 201);
     }

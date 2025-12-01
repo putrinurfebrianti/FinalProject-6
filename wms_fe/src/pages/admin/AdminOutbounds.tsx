@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { apiGet, apiPost } from "../../utils/api";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import DatePicker from "../../components/form/DatePicker";
 
 interface Outbound {
   id: number;
@@ -189,11 +188,11 @@ export default function AdminOutbounds() {
 
               {/* MINI CALENDAR */}
               <DatePicker
-                selected={form.invoice_date}
+                value={form.invoice_date}
                 onChange={(date) => setForm({ ...form, invoice_date: date })}
                 className="w-full border p-2 rounded"
-                dateFormat="yyyy-MM-dd"
-                placeholderText="Pilih Tanggal"
+                options={{ dateFormat: "Y-m-d" }}
+                placeholder="Pilih Tanggal"
                 required
               />
 

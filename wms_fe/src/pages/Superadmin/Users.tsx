@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
+  
 interface User {
   id: number;
   name: string;
@@ -31,7 +31,7 @@ const SuperadminUsers = () => {
     branch_id: "" as string | number,
   });
 
-  const API_URL = "http://127.0.0.1:8000/api";
+  
 
   const fetchData = async () => {
     setLoading(true);
@@ -43,7 +43,7 @@ const SuperadminUsers = () => {
 
       setUsers(resUsers.data.data || resUsers.data);
       setBranches(resBranches.data.data || resBranches.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);

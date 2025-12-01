@@ -9,10 +9,11 @@ type DatePickerProps = {
   wrapperClassName?: string;
   options?: any;
   id?: string;
+  required?: boolean;
 };
 
 const DatePicker = forwardRef<any, DatePickerProps>(
-  ({ value, onChange, placeholder, className, wrapperClassName, options, id }, ref) => {
+  ({ value, onChange, placeholder, className, wrapperClassName, options, id, required }, ref) => {
     const pickerRef = useRef<any>(null);
 
     // Expose flatpickr instance for parent usage (open/close)
@@ -36,7 +37,8 @@ const DatePicker = forwardRef<any, DatePickerProps>(
         <Flatpickr
           id={id}
           ref={pickerRef}
-          value={selected}
+          value={selected ?? undefined}
+          required={required}
           onChange={(d: Date[]) => onChange?.(d?.[0] ?? null)}
           options={{
             dateFormat: "Y-m-d",

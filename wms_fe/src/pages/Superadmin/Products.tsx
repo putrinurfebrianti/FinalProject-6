@@ -36,7 +36,7 @@ const Products = () => {
       setLoading(true);
       const response = await axios.get(`${API_URL}/products`);
       setProducts(response.data.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Gagal ambil data produk:", error);
     } finally {
       setLoading(false);
@@ -85,7 +85,7 @@ const Products = () => {
         await axios.delete(`${API_URL}/superadmin/products/${id}`);
         alert("Produk dihapus.");
         fetchProducts();
-      } catch (error) {
+      } catch (error: any) {
         alert("Gagal menghapus produk.");
       }
     }

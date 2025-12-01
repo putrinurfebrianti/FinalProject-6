@@ -4,6 +4,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Models\ActivityLog;
+use Illuminate\Support\Facades\Auth;
+use App\Events\NotificationEvent;
 
 class BranchController extends Controller
 {
@@ -27,6 +30,18 @@ class BranchController extends Controller
         }
 
         $branch = Branch::create($request->all());
+
+        // Notify superadmins that a new branch has been created (queued)
+        try {
+            $superadmins = \App\Models\User::where('role', 'superadmin')->get();
+            event(new NotificationEvent($superadmins, Auth::id() ?? null, 'branch_created', ['branch_id' => $branch->id, 'name' => $branch->name]));
+        } catch (\Exception $e) {
+            ActivityLog::create([
+                'user_id' => Auth::id() ?? null,
+                'action' => 'NOTIFY_FAILED',
+                'description' => 'Failed to notify branch creation for branch ' . $branch->id . ': ' . $e->getMessage()
+            ]);
+        }
         return response()->json(['status' => 'success', 'data' => $branch], 201);
     }
 
@@ -47,12 +62,36 @@ class BranchController extends Controller
         }
 
         $branch->update($request->all());
+
+        // Notify superadmins that branch was updated (queued)
+        try {
+            $superadmins = \App\Models\User::where('role', 'superadmin')->get();
+            event(new NotificationEvent($superadmins, Auth::id() ?? null, 'branch_updated', ['branch_id' => $branch->id, 'name' => $branch->name]));
+        } catch (\Exception $e) {
+            ActivityLog::create([
+                'user_id' => Auth::id() ?? null,
+                'action' => 'NOTIFY_FAILED',
+                'description' => 'Failed to notify branch update for branch ' . $branch->id . ': ' . $e->getMessage()
+            ]);
+        }
         return response()->json(['status' => 'success', 'data' => $branch]);
     }
 
     public function destroy(Branch $branch)
     {
         $branch->delete();
+
+        // Notify superadmins that branch was deleted (queued)
+        try {
+            $superadmins = \App\Models\User::where('role', 'superadmin')->get();
+            event(new NotificationEvent($superadmins, Auth::id() ?? null, 'branch_deleted', ['branch_id' => $branch->id, 'name' => $branch->name]));
+        } catch (\Exception $e) {
+            ActivityLog::create([
+                'user_id' => Auth::id() ?? null,
+                'action' => 'NOTIFY_FAILED',
+                'description' => 'Failed to notify branch deletion for branch ' . $branch->id . ': ' . $e->getMessage()
+            ]);
+        }
         return response()->json(['status' => 'success', 'message' => 'Branch deleted successfully']);
     }
 }

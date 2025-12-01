@@ -3,12 +3,18 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import api from "../../utils/api";
 
 type Notification = {
-  id: string;
-  type: "outbound" | "report";
-  message: string;
-  url: string;
+  id: number;
+  type: string;
+  data: any;
+  is_read: boolean;
+  created_at?: string;
+  // optional computed fields for frontend usage
+  message?: string;
+  url?: string;
+  actor?: { id: number; name?: string };
 };
 
 export default function NotificationDropdown() {
@@ -26,117 +32,91 @@ export default function NotificationDropdown() {
     try {
       if (!token || !user) return;
 
-      let outboundURL = "";
-      let reportURL = "";
-      let redirectURL = "";
-
-      // =====================================
-      // ROLE BASED API SETUP
-      // =====================================
-
-      if (user.role === "admin") {
-        // Admin endpoints are namespaced under /admin
-        outboundURL = "http://127.0.0.1:8000/api/admin/outbounds";
-        reportURL = "http://127.0.0.1:8000/api/admin/reports";
-        redirectURL = "/admin";
-      }
-
-      if (user.role === "supervisor") {
-        // Supervisor currently has only report endpoints in backend.
-        // If a supervisor outbound API is added later, replace the following.
-        outboundURL = ""; // no outbound route for supervisor by default
-        reportURL = "http://127.0.0.1:8000/api/supervisor/reports";
-        redirectURL = "/supervisor";
-
-        // Kalau API supervisor belum dibuat → aktifkan fallback berikut:
-        // outboundURL = "http://127.0.0.1:8000/api/outbounds";
-        // reportURL = "http://127.0.0.1:8000/api/admin/reports";
-      }
-
-      if (user.role === "user") {
-        // Users do not have an 'outbounds' endpoint — they have orders instead.
-        // We'll reuse order endpoints to indicate new activity for customers.
-        outboundURL = "http://127.0.0.1:8000/api/user/orders";
-        reportURL = "http://127.0.0.1:8000/api/user/reports";
-        redirectURL = "/";
-      }
-
-      // If neither url provided, nothing to fetch
-      if (!outboundURL && !reportURL) {
+      const res = await api.apiGet('/notifications');
+      if (!res.ok) {
+        console.warn('Failed to fetch notifications', await res.text());
         setNotifications([]);
         setNotifying(false);
         return;
       }
 
-      // Debug token presence and endpoints
-      console.debug("Notif fetch — token:", token, { outboundURL, reportURL });
+      const payload = await res.json();
+      const notifList = (payload.data ?? []) as Notification[];
 
-      const requests = [] as Promise<Response>[];
-      if (outboundURL) requests.push(fetch(outboundURL, { headers: { Authorization: `Bearer ${token}` } }));
-      if (reportURL) requests.push(fetch(reportURL, { headers: { Authorization: `Bearer ${token}` } }));
-
-      const responses = await Promise.all(requests);
-      const outboundRes = responses[0] ?? null;
-      const reportRes = responses[1] ?? null;
-
-      let outboundData: any[] = [];
-      let reportData: any[] = [];
-
-      if (outboundRes) {
-        if (!outboundRes.ok) {
-          console.warn("Outbound API returned non-ok status", outboundRes.status);
-        } else {
-          try {
-            outboundData = (await outboundRes.json()).data ?? [];
-          } catch (err) {
-            console.warn("Failed parsing outbound response:", err);
-          }
+      // compute messages & URLs based on type
+      const enhanced = notifList.map((n) => {
+        let message = '';
+        let url = '/';
+        switch (n.type) {
+          case 'order_created':
+            message = `Order ${n.data?.order_number ?? n.data?.order_id ?? ''} dibuat oleh ${n.actor?.name ?? 'user'}`;
+            url = user.role === 'admin' ? '/admin/outbounds' : user.role === 'superadmin' ? '/superadmin' : '/my-orders';
+            break;
+          case 'inbound_created':
+            message = `Inbound ${n.data?.quantity ?? ''} item (Cabang ${n.data?.branch_id ?? ''})`;
+            url = user.role === 'admin' ? '/admin/stock' : '/superadmin/inbound';
+            break;
+          case 'report_created':
+            message = `Laporan ${n.data?.report_type ?? 'harian'} (${n.data?.report_date ?? ''}) dibuat oleh ${n.actor?.name ?? 'user'}`;
+            url = user.role === 'supervisor' ? '/supervisor/reports' : '/superadmin/inbound';
+            break;
+          case 'report_verified':
+            message = `Laporan ${n.data?.report_type ?? ''} (${n.data?.report_date ?? ''}) telah diverifikasi oleh ${n.actor?.name ?? ''}.`;
+            url = user.role === 'admin' ? '/admin/reports' : user.role === 'supervisor' ? '/supervisor/reports' : '/superadmin/activitylogs';
+            break;
+          case 'user_registered':
+            message = `User baru terdaftar: ${n.data?.role ?? 'user'} (ID: ${n.data?.user_id ?? ''})`;
+            url = '/superadmin/users';
+            break;
+          case 'product_created':
+            message = `Produk baru: ${n.data?.name ?? n.data?.sku ?? ''}`;
+            url = '/superadmin/products';
+            break;
+          case 'product_updated':
+            message = `Produk diperbarui: ${n.data?.name ?? n.data?.sku ?? ''}`;
+            url = '/superadmin/products';
+            break;
+          case 'product_deleted':
+            message = `Produk dihapus: ${n.data?.name ?? n.data?.sku ?? ''}`;
+            url = '/superadmin/products';
+            break;
+          case 'branch_created':
+            message = `Cabang baru: ${n.data?.name ?? ''}`;
+            url = '/superadmin/branches';
+            break;
+          case 'branch_updated':
+            message = `Cabang diperbarui: ${n.data?.name ?? ''}`;
+            url = '/superadmin/branches';
+            break;
+          case 'branch_deleted':
+            message = `Cabang dihapus: ${n.data?.name ?? ''}`;
+            url = '/superadmin/branches';
+            break;
+          case 'stock_manual_update':
+            message = `Stok cabang diperbarui: Cabang ${n.data?.branch_id ?? ''} Produk ${n.data?.product_id ?? ''} (${n.data?.stock ?? ''})`;
+            url = user.role === 'admin' ? '/admin/stock' : '/superadmin/branchstock';
+            break;
+          case 'outbound_shipped':
+            message = `Order #${n.data?.order_id ?? ''} dikirim (Outbound ${n.data?.outbound_id ?? ''})`;
+            url = '/my-orders';
+            break;
+          case 'order_confirmation':
+            message = `Order ${n.data?.order_number ?? ''} berhasil dibuat.`;
+            url = '/my-orders';
+            break;
+          case 'outbound_created':
+            message = `Outbound tercatat (Qty: ${n.data?.quantity ?? ''})`;
+            url = user.role === 'superadmin' ? '/superadmin' : '/admin/outbounds';
+            break;
+          default:
+            message = `Aktivitas: ${n.type}`;
+            url = user.role === 'admin' ? '/admin' : user.role === 'superadmin' ? '/superadmin' : '/';
         }
-      }
-
-      if (reportRes) {
-        if (!reportRes.ok) {
-          console.warn("Report API returned non-ok status", reportRes.status);
-        } else {
-          try {
-            reportData = (await reportRes.json()).data ?? [];
-          } catch (err) {
-            console.warn("Failed parsing report response:", err);
-          }
-        }
-      }
-
-      const notifList: Notification[] = [];
-
-      // Outbound notifications
-      outboundData.forEach((o) => {
-        notifList.push({
-          id: `out-${o.id}`,
-          type: "outbound",
-          message:
-            o.status === "pending"
-              ? `Invoice ${o.invoice_no} masih pending.`
-              : `Invoice ${o.invoice_no} telah diverifikasi.`,
-          url: `${redirectURL}/outbounds`,
-        });
+        return { ...n, message, url };
       });
 
-      // Report notifications
-      reportData.forEach((r) => {
-        const type = r.report_type === "harian" ? "Harian" : "Bulanan";
-
-        notifList.push({
-          id: `rep-${r.id}`,
-          type: "report",
-          message: r.is_verified
-            ? `Laporan ${type} ${r.report_date} telah diverifikasi.`
-            : `Laporan ${type} ${r.report_date} menunggu verifikasi.`,
-          url: `${redirectURL}/reports`,
-        });
-      });
-
-      setNotifications(notifList);
-      setNotifying(notifList.length > 0);
+      setNotifications(enhanced);
+      setNotifying((payload.unread_count ?? enhanced.filter(n => !n.is_read).length) > 0);
     } catch (e) {
       console.error("Notif fetch error:", e);
     }
@@ -148,10 +128,30 @@ export default function NotificationDropdown() {
     return () => clearInterval(interval);
   }, [user]);
 
-  const handleClickNotif = (url: string) => {
+  const handleClickNotif = async (n: Notification) => {
     closeDropdown();
-    navigate(url);
+    try {
+      await api.apiFetch(`/notifications/${n.id}/read`, { method: 'PATCH' });
+      // update local state
+      setNotifications((prev) => prev.map((x) => (x.id === n.id ? { ...x, is_read: true } : x)));
+      setNotifying((prev) => prev === true ? (notifications.some(x => x.id !== n.id && !x.is_read)) : false);
+    } catch (err) {
+      console.warn('Failed to mark notification as read', err);
+    }
+    navigate(n.url ?? '/');
   };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await api.apiFetch(`/notifications/read-all`, { method: 'PATCH' });
+      setNotifications((prev) => prev.map((x) => ({ ...x, is_read: true })));
+      setNotifying(false);
+    } catch (err) {
+      console.warn('Failed to mark all notifications as read', err);
+    }
+  };
+
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   return (
     <div className="relative">
@@ -162,9 +162,9 @@ export default function NotificationDropdown() {
           setNotifying(false);
         }}
       >
-        {notifying && (
-          <span className="absolute right-0 top-0.5 h-2.5 w-2.5 rounded-full bg-orange-500">
-            <span className="absolute inline-flex w-full h-full bg-orange-400 rounded-full opacity-75 animate-ping"></span>
+        {unreadCount > 0 && (
+          <span className="absolute right-0 top-0.5 flex items-center justify-center h-5 min-w-[20px] px-1 rounded-full bg-orange-500 text-xs text-white">
+            {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
 
@@ -173,14 +173,17 @@ export default function NotificationDropdown() {
         </svg>
       </button>
 
-      <Dropdown
+        <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
         className="absolute right-0 mt-[17px] w-[90vw] max-w-sm rounded-2xl border bg-white shadow-xl p-4"
       >
         <div className="flex items-center justify-between pb-3 mb-3 border-b">
           <h5 className="text-lg font-semibold">Notifikasi</h5>
-          <button onClick={toggleDropdown}>✕</button>
+          <div className="flex items-center gap-2">
+            <button onClick={handleMarkAllRead} className="text-sm text-gray-500 hover:underline">Tandai semua dibaca</button>
+            <button onClick={toggleDropdown}>✕</button>
+          </div>
         </div>
 
         <ul className="flex flex-col h-[380px] overflow-y-auto">
@@ -193,10 +196,21 @@ export default function NotificationDropdown() {
           {notifications.map((n) => (
             <li key={n.id}>
               <DropdownItem
-                onItemClick={() => handleClickNotif(n.url)}
-                className="flex gap-3 border-b py-3 hover:bg-gray-100"
+                onItemClick={() => handleClickNotif(n)}
+                className={`flex gap-3 border-b py-3 hover:bg-gray-100 ${n.is_read ? 'opacity-70' : ''}`}
               >
-                <span className="block mt-1 text-sm font-medium">{n.message}</span>
+                <div className="flex items-start gap-3">
+                  <div className="flex items-center justify-center rounded-full h-8 w-8 bg-gray-100 text-xs font-semibold text-gray-700">
+                    {n.actor?.name ? n.actor.name.charAt(0).toUpperCase() : '•'}
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium">{n.message}</div>
+                  {n.actor?.name && (
+                    <div className="text-xs text-gray-500 mt-1">oleh {n.actor.name}</div>
+                  )}
+                </div>
+                <span className="text-xs text-gray-400 ml-auto">{n.created_at ? new Date(n.created_at).toLocaleString() : ''}</span>
               </DropdownItem>
             </li>
           ))}

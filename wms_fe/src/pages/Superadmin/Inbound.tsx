@@ -39,7 +39,7 @@ const SuperadminInbound = () => {
     { product_id: "", quantity: 1 } // Minimal 1 item
   ]);
 
-  const API_URL = "http://127.0.0.1:8000/api";
+  
 
   // 1. FETCH DATA (Branches & Products)
   useEffect(() => {
@@ -51,7 +51,7 @@ const SuperadminInbound = () => {
         ]);
         setBranches(branchesRes.data.data);
         setProducts(productsRes.data.data);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching master data:", error);
         alert("Gagal memuat data cabang/produk.");
       } finally {

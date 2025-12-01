@@ -22,7 +22,7 @@ const SuperadminBranches = () => {
     address: "",
   });
 
-  const API_URL = "http://127.0.0.1:8000/api";
+  
 
   // --- 1. FETCH DATA ---
   const fetchBranches = async () => {

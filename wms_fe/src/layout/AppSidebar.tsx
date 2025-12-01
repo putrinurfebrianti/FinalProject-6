@@ -71,11 +71,6 @@ const adminNavItems: NavItem[] = [
     name: "Lihat Stok Cabang",
     path: "/admin/stock", // Nanti Anda buat halamannya
   },
-  {
-    icon: <UserCircleIcon />,
-    name: "User Profile",
-    path: "/profile",
-  },
 ];
 
 // Menu untuk Superadmin (sesuai brief)
