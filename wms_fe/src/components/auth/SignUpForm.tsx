@@ -1,26 +1,125 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
+import { useAuth } from "../../context/AuthContext";
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  
+  // Form data
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
 
-  // 🔥 Tambahan: handle submit
-  const handleSubmit = (e: React.FormEvent) => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
 
-    if (!isChecked) {
-      alert("You must agree to the Terms & Conditions.");
+    // Validasi
+    if (!firstName || !lastName || !email || !password || !passwordConfirmation) {
+      setError("Semua field wajib diisi.");
       return;
     }
 
-    alert("Form submitted! (tambahkan API fetch disini)");
+    if (password !== passwordConfirmation) {
+      setError("Password dan konfirmasi password tidak cocok.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password minimal 8 karakter.");
+      return;
+    }
+
+    if (!isChecked) {
+      setError("Anda harus menyetujui Terms & Conditions.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const fullName = `${firstName} ${lastName}`;
+      
+      // Register
+      const registerResponse = await fetch("http://127.0.0.1:8000/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          name: fullName,
+          email: email,
+          password: password,
+          password_confirmation: passwordConfirmation,
+        }),
+      });
+
+      const registerData = await registerResponse.json();
+
+      if (!registerResponse.ok) {
+        if (registerData.errors) {
+          const errorMessages = Object.values(registerData.errors).flat().join(", ");
+          setError(errorMessages);
+        } else {
+          setError(registerData.message || "Registrasi gagal.");
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      // Auto login setelah registrasi berhasil
+      const loginResponse = await fetch("http://127.0.0.1:8000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      const loginData = await loginResponse.json();
+
+      if (!loginResponse.ok) {
+        setError("Registrasi berhasil, silakan login.");
+        setTimeout(() => navigate("/signin"), 2000);
+        setIsLoading(false);
+        return;
+      }
+
+      // Simpan token dan user ke context
+      login(loginData.access_token, loginData.user);
+
+      // Tampilkan pesan sukses
+      alert("Registrasi berhasil! Selamat datang, " + loginData.user.name);
+
+      // Redirect ke dashboard customer
+      navigate("/");
+      
+    } catch (err) {
+      console.error("Registration error:", err);
+      setError("Terjadi kesalahan. Silakan coba lagi.");
+      setIsLoading(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -64,20 +163,37 @@ export default function SignUpForm() {
           {/* Form */}
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
+              {/* Error Message */}
+              {error && (
+                <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+                  {error}
+                </div>
+              )}
+
               {/* Name */}
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div>
                   <Label className="dark:text-gray-200">
                     First Name <span className="text-red-500">*</span>
                   </Label>
-                  <Input placeholder="Enter your first name" />
+                  <Input 
+                    placeholder="Enter your first name" 
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    disabled={isLoading}
+                  />
                 </div>
 
                 <div>
                   <Label className="dark:text-gray-200">
                     Last Name <span className="text-red-500">*</span>
                   </Label>
-                  <Input placeholder="Enter your last name" />
+                  <Input 
+                    placeholder="Enter your last name" 
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    disabled={isLoading}
+                  />
                 </div>
               </div>
 
@@ -86,7 +202,13 @@ export default function SignUpForm() {
                 <Label className="dark:text-gray-200">
                   Email <span className="text-red-500">*</span>
                 </Label>
-                <Input placeholder="example@mail.com" />
+                <Input 
+                  type="email"
+                  placeholder="example@mail.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
+                />
               </div>
 
               {/* Password */}
@@ -98,7 +220,10 @@ export default function SignUpForm() {
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
-                    placeholder="your password"
+                    placeholder="your password (min 8 characters)"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
                   />
 
                   <span
@@ -114,6 +239,20 @@ export default function SignUpForm() {
                 </div>
               </div>
 
+              {/* Confirm Password */}
+              <div>
+                <Label className="dark:text-gray-200">
+                  Confirm Password <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="password"
+                  placeholder="confirm your password"
+                  value={passwordConfirmation}
+                  onChange={(e) => setPasswordConfirmation(e.target.value)}
+                  disabled={isLoading}
+                />
+              </div>
+
               {/* Checkbox */}
               <div className="flex items-center gap-3">
                 <Checkbox checked={isChecked} onChange={setIsChecked} />
@@ -125,14 +264,14 @@ export default function SignUpForm() {
 
               {/* Submit */}
               <div>
-                {/* 🔥 Tambahan type="submit" */}
                 <Button
                   type="submit"
-                  className="w-full bg-[#2ac45b] hover:bg-[#3bde64] text-gray-800
-                             dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
+                  className="w-full bg-herbalife-600 hover:bg-herbalife-700 text-white
+                             dark:bg-herbalife-700 dark:hover:bg-herbalife-600"
                   size="sm"
+                  disabled={isLoading}
                 >
-                  Sign Up
+                  {isLoading ? "Loading..." : "Sign Up"}
                 </Button>
               </div>
             </div>

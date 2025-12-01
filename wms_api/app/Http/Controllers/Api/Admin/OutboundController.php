@@ -17,8 +17,12 @@ class OutboundController extends Controller
         if (!$adminBranchId) {
             return response()->json(['message' => 'Anda tidak terhubung ke cabang manapun'], 403);
         }
-        
-        $outbounds = Outbound::where('branch_id', $adminBranchId)->with('product')->get();
+
+        $outbounds = Outbound::where('branch_id', $adminBranchId)
+            ->with(['product', 'order.customer'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return response()->json(['data' => $outbounds]);
     }
 
@@ -34,7 +38,7 @@ class OutboundController extends Controller
             'invoice_date' => 'required|date',
             'order_id' => 'nullable|exists:orders,id'
         ]);
-        
+
         try {
             $outbound = Outbound::create([
                 'order_number' => $request->order_number,
@@ -95,7 +99,7 @@ class OutboundController extends Controller
             }
 
             return response()->json(['message' => 'Outbound berhasil dicatat', 'data' => $outbound], 201);
-        
+
         } catch (\Exception $e) {
             return response()->json(['message' => 'Gagal mencatat outbound: ' . $e->getMessage()], 400);
         }

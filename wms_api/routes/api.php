@@ -58,6 +58,7 @@ Route::middleware(['auth:sanctum', 'user'])->prefix('user')->group(function () {
 // RUTE ROLE: ADMIN CABANG (& SUPERADMIN)
 // ====================================================
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/orders', [App\Http\Controllers\Api\Admin\OrderController::class, 'index']);
     Route::get('/outbounds', [OutboundController::class, 'index']);
     Route::post('/outbounds', [OutboundController::class, 'createOutbound']);
     Route::get('/reports', [AdminReportController::class, 'index']);
