@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\ActivityLog;
 use Illuminate\Support\Facades\Auth;
-use App\Events\NotificationEvent;
+use App\Events\BranchCreated;
+use App\Events\BranchUpdated;
+use App\Events\BranchDeleted;
 
 class BranchController extends Controller
 {
@@ -34,7 +36,7 @@ class BranchController extends Controller
         // Notify superadmins that a new branch has been created (queued)
         try {
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
-            event(new NotificationEvent($superadmins, Auth::id() ?? null, 'branch_created', ['branch_id' => $branch->id, 'name' => $branch->name]));
+            event(new BranchCreated($branch));
         } catch (\Exception $e) {
             ActivityLog::create([
                 'user_id' => Auth::id() ?? null,
@@ -66,7 +68,7 @@ class BranchController extends Controller
         // Notify superadmins that branch was updated (queued)
         try {
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
-            event(new NotificationEvent($superadmins, Auth::id() ?? null, 'branch_updated', ['branch_id' => $branch->id, 'name' => $branch->name]));
+            event(new BranchUpdated($branch));
         } catch (\Exception $e) {
             ActivityLog::create([
                 'user_id' => Auth::id() ?? null,
@@ -84,7 +86,7 @@ class BranchController extends Controller
         // Notify superadmins that branch was deleted (queued)
         try {
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
-            event(new NotificationEvent($superadmins, Auth::id() ?? null, 'branch_deleted', ['branch_id' => $branch->id, 'name' => $branch->name]));
+            event(new BranchDeleted($branch));
         } catch (\Exception $e) {
             ActivityLog::create([
                 'user_id' => Auth::id() ?? null,

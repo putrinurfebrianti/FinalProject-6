@@ -6,8 +6,9 @@ use App\Models\OrderItem;
 use App\Models\BranchStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\ActivityLog;
-use App\Events\NotificationEvent;
+use App\Events\OrderCreated;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -68,7 +69,7 @@ class OrderController extends Controller
 
             // Buat order
             $order = Order::create([
-                'order_number' => 'ORD-' . Str::uuid(),
+                'order_number' => Order::generateOrderNumber(),
                 'customer_id' => Auth::id(),
                 'branch_id' => $branchId,
                 'total_amount' => $totalAmount,
@@ -94,28 +95,16 @@ class OrderController extends Controller
                 'description' => 'User membuat order ' . $order->order_number . ' ke Cabang ' . $order->branch_id . ' (Total: ' . $order->total_amount . ')'
             ]);
 
-            // Notify admins of the branch and superadmins via queued event
-            $admins = \App\Models\User::where('role', 'admin')->where('branch_id', $order->branch_id)->get();
-            $superadmins = \App\Models\User::where('role', 'superadmin')->get();
-            $recipients = $admins->merge($superadmins);
+            // Dispatch a domain event; listeners will map to NotificationEvent
+            Log::info("CONTROLLER: Triggering OrderCreated event for order: {$order->order_number}");
             try {
-                event(new NotificationEvent($recipients, Auth::id(), 'order_created', ['order_id' => $order->id, 'order_number' => $order->order_number, 'branch_id' => $order->branch_id, 'total_amount' => $order->total_amount]));
+                event(new OrderCreated($order));
+                Log::info("CONTROLLER: OrderCreated event triggered successfully");
             } catch (\Exception $e) {
                 ActivityLog::create([
                     'user_id' => Auth::id(),
                     'action' => 'NOTIFY_FAILED',
-                    'description' => 'Failed to dispatch notification event for order: ' . $order->id
-                ]);
-            }
-
-            // Notify the customer who created the order (confirmation) via queue
-            try {
-                event(new NotificationEvent([Auth::id()], Auth::id(), 'order_confirmation', ['order_id' => $order->id, 'order_number' => $order->order_number, 'branch_id' => $order->branch_id]));
-            } catch (\Exception $e) {
-                ActivityLog::create([
-                    'user_id' => Auth::id(),
-                    'action' => 'NOTIFY_FAILED',
-                    'description' => 'Failed to dispatch notification event for customer order confirmation for order id ' . $order->id
+                    'description' => 'Failed to dispatch OrderCreated event for order: ' . $order->id
                 ]);
             }
 

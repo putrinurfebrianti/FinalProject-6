@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ActivityLog;
-use App\Events\NotificationEvent;
+use App\Events\ProductCreated;
+use App\Events\ProductUpdated;
+use App\Events\ProductDeleted;
 
 class ProductController extends Controller
 {
@@ -30,13 +32,12 @@ class ProductController extends Controller
 
         $product = Product::create($request->all());
 
-        // Notify superadmins and branch admins about new product (queued)
+        // Notify superadmins and branch admins about new product (queued via domain event)
         try {
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
             $admins = \App\Models\User::where('role', 'admin')->get();
             $recipients = $superadmins->merge($admins);
-            $payload = ['product_id' => $product->id, 'sku' => $product->sku, 'name' => $product->name];
-            event(new NotificationEvent($recipients, Auth::id() ?? null, 'product_created', $payload));
+            event(new ProductCreated($product));
         } catch (\Exception $e) {
             ActivityLog::create([
                 'user_id' => Auth::id() ?? null,
@@ -72,8 +73,7 @@ class ProductController extends Controller
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
             $admins = \App\Models\User::where('role', 'admin')->get();
             $recipients = $superadmins->merge($admins);
-            $payload = ['product_id' => $product->id, 'sku' => $product->sku, 'name' => $product->name];
-            event(new NotificationEvent($recipients, Auth::id() ?? null, 'product_updated', $payload));
+            event(new ProductUpdated($product));
         } catch (\Exception $e) {
             ActivityLog::create([
                 'user_id' => Auth::id() ?? null,
@@ -93,8 +93,7 @@ class ProductController extends Controller
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
             $admins = \App\Models\User::where('role', 'admin')->get();
             $recipients = $superadmins->merge($admins);
-            $payload = ['product_id' => $product->id, 'sku' => $product->sku, 'name' => $product->name];
-            event(new NotificationEvent($recipients, Auth::id() ?? null, 'product_deleted', $payload));
+            event(new ProductDeleted($product));
         } catch (\Exception $e) {
             ActivityLog::create([
                 'user_id' => Auth::id() ?? null,

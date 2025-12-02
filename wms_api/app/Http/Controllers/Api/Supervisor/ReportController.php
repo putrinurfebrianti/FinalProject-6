@@ -4,7 +4,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Report;
 use App\Models\ActivityLog;
-use App\Events\NotificationEvent;
+use App\Events\ReportVerified;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -54,7 +54,7 @@ class ReportController extends Controller
             if ($generatorUser) {
                 $recipients = $recipients->merge(collect([$generatorUser]));
             }
-            event(new NotificationEvent($recipients, $supervisor->id, 'report_verified', ['report_id' => $report->id, 'branch_id' => $report->branch_id, 'report_date' => $report->report_date, 'verified_by' => $supervisor->name]));
+            event(new ReportVerified($report));
         } catch (\Exception $e) {
             \App\Models\ActivityLog::create([
                 'user_id' => $supervisor->id,

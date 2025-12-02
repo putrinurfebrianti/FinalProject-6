@@ -4,6 +4,7 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../utils/api";
+import { initEcho } from "../../utils/echo";
 
 type Notification = {
   id: number;
@@ -14,7 +15,8 @@ type Notification = {
   // optional computed fields for frontend usage
   message?: string;
   url?: string;
-  actor?: { id: number; name?: string };
+  actor?: { id: number; name?: string, email?: string };
+  actor_gravatar?: string | null;
 };
 
 export default function NotificationDropdown() {
@@ -44,7 +46,7 @@ export default function NotificationDropdown() {
       const notifList = (payload.data ?? []) as Notification[];
 
       // compute messages & URLs based on type
-      const enhanced = notifList.map((n) => {
+      const computeEnhanced = (n: Notification) => {
         let message = '';
         let url = '/';
         switch (n.type) {
@@ -112,8 +114,10 @@ export default function NotificationDropdown() {
             message = `Aktivitas: ${n.type}`;
             url = user.role === 'admin' ? '/admin' : user.role === 'superadmin' ? '/superadmin' : '/';
         }
-        return { ...n, message, url };
-      });
+        return {...n, message, url };
+      };
+
+      const enhanced = notifList.map((n) => computeEnhanced(n));
 
       setNotifications(enhanced);
       setNotifying((payload.unread_count ?? enhanced.filter(n => !n.is_read).length) > 0);
@@ -125,7 +129,30 @@ export default function NotificationDropdown() {
   useEffect(() => {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
+    // Setup echo subscription for real-time notifications
+    let echo: any = null;
+    let channel: any = null;
+    try {
+      echo = initEcho(token);
+      if (echo && user) {
+        channel = echo.private(`App.User.${user.id}`);
+        channel.listen('NotificationCreated', (e: any) => {
+          const n = computeEnhanced(e.notification as Notification);
+          setNotifications((prev) => [n, ...prev]);
+          setNotifying(true);
+        });
+      }
+    } catch (e) {
+      console.warn('Echo setup failed', e);
+    }
+    return () => {
+      clearInterval(interval);
+      try {
+        if (channel) channel.stopListening('.NotificationCreated');
+      } catch (e) {
+        // ignore
+      }
+    };
   }, [user]);
 
   const handleClickNotif = async (n: Notification) => {
@@ -186,7 +213,7 @@ export default function NotificationDropdown() {
           </div>
         </div>
 
-        <ul className="flex flex-col h-[380px] overflow-y-auto">
+        <ul className="flex flex-col h-[340px] overflow-y-auto">
           {notifications.length === 0 && (
             <p className="text-gray-500 text-center py-6">
               Tidak ada notifikasi.
@@ -200,8 +227,14 @@ export default function NotificationDropdown() {
                 className={`flex gap-3 border-b py-3 hover:bg-gray-100 ${n.is_read ? 'opacity-70' : ''}`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center rounded-full h-8 w-8 bg-gray-100 text-xs font-semibold text-gray-700">
-                    {n.actor?.name ? n.actor.name.charAt(0).toUpperCase() : '•'}
+                  <div>
+                    {n.actor_gravatar ? (
+                      <img src={n.actor_gravatar} className="rounded-full h-8 w-8 object-cover" alt={n.actor?.name ?? "actor"} />
+                    ) : (
+                      <div className="flex items-center justify-center rounded-full h-8 w-8 bg-gray-100 text-xs font-semibold text-gray-700">
+                        {n.actor?.name ? n.actor.name.charAt(0).toUpperCase() : '•'}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
@@ -215,6 +248,9 @@ export default function NotificationDropdown() {
             </li>
           ))}
         </ul>
+        <div className="mt-2 pt-2 border-t text-center">
+          <button onClick={() => { closeDropdown(); navigate('/notifications'); }} className="text-sm text-blue-500 hover:underline">Lihat semua notifikasi</button>
+        </div>
       </Dropdown>
     </div>
   );

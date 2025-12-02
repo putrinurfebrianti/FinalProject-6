@@ -51,6 +51,13 @@ class DashboardController extends Controller
                 'outbounds_today_invoice' => Outbound::where('branch_id', $branchId)->whereDate('invoice_date', today())->sum('quantity'),
                 'pending_orders_branch' => Order::where('branch_id', $branchId)->where('status', 'pending')->count(),
             ];
+            
+            // Add pending reports for supervisor
+            if ($user->role == 'supervisor') {
+                $stats['pending_reports'] = \App\Models\Report::where('branch_id', $branchId)
+                    ->where('is_verified', false)
+                    ->count();
+            }
         } 
         
         // --- STATISTIK UNTUK USER (CUSTOMER) ---

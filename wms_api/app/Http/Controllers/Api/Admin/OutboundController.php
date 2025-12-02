@@ -5,7 +5,8 @@ use App\Models\Outbound;
 use App\Models\BranchStock;
 use Illuminate\Http\Request;
 use App\Models\ActivityLog;
-use App\Events\NotificationEvent;
+use App\Events\OutboundCreated;
+use App\Events\OrderCompleted;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -40,6 +41,8 @@ class OutboundController extends Controller
         ]);
 
         try {
+            DB::beginTransaction();
+
             $outbound = Outbound::create([
                 'order_number' => $request->order_number,
                 'product_id' => $request->product_id,
@@ -56,12 +59,51 @@ class OutboundController extends Controller
                 'description' => 'Admin mencatat invoice ' . $outbound->order_number . ' (Qty: ' . $outbound->quantity . ')'
             ]);
 
-            // Notify superadmins that an outbound was created by branch admin (queued)
-            $superadmins = \App\Models\User::where('role', 'superadmin')->get();
+            // If the outbound is linked to an order, check if all items are processed and update order status
+            if ($outbound->order_id) {
+                $order = \App\Models\Order::find($outbound->order_id);
+                
+                if ($order) {
+                    // Count total outbounds for this order (including the one just created)
+                    $totalOutbounds = Outbound::where('order_id', $order->id)->count();
+                    $totalOrderItems = $order->items()->count();
+                    
+                    ActivityLog::create([
+                        'user_id' => $admin->id,
+                        'action' => 'ORDER_PROGRESS',
+                        'description' => "Order {$order->order_number}: {$totalOutbounds}/{$totalOrderItems} items processed"
+                    ]);
+                    
+                    // If all items have been processed, mark order as completed
+                    if ($totalOrderItems > 0 && $totalOutbounds >= $totalOrderItems) {
+                        $order->status = 'completed';
+                        $order->save();
+                        
+                        ActivityLog::create([
+                            'user_id' => $admin->id,
+                            'action' => 'ORDER_COMPLETED',
+                            'description' => 'Order ' . $order->order_number . ' telah selesai diproses'
+                        ]);
+                        
+                        // Trigger OrderCompleted event to notify customer and supervisor
+                        try {
+                            event(new OrderCompleted($order));
+                        } catch (\Exception $e) {
+                            ActivityLog::create([
+                                'user_id' => $admin->id,
+                                'action' => 'NOTIFY_FAILED',
+                                'description' => 'Failed to dispatch OrderCompleted event: ' . $e->getMessage()
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            DB::commit();
+
+            // Notify relevant users (queued)
             try {
-                $productName = \App\Models\Product::find($outbound->product_id)->name ?? null;
-                $branchName = \App\Models\Branch::find($outbound->branch_id)->name ?? null;
-                event(new NotificationEvent($superadmins, $admin->id, 'outbound_created', ['outbound_id' => $outbound->id, 'branch_id' => $adminBranchId, 'branch_name' => $branchName, 'quantity' => $outbound->quantity, 'product_id' => $outbound->product_id, 'product_name' => $productName]));
+                event(new OutboundCreated($outbound));
             } catch (\Exception $e) {
                 ActivityLog::create([
                     'user_id' => $admin->id,
@@ -70,37 +112,10 @@ class OutboundController extends Controller
                 ]);
             }
 
-            // If the outbound is linked to an order, notify the customer that their order has shipped
-            if ($outbound->order_id) {
-                try {
-                    $order = \App\Models\Order::find($outbound->order_id);
-                    if ($order) {
-                        $customer = \App\Models\User::find($order->customer_id);
-                        if ($customer) {
-                            try {
-                                $productName = \App\Models\Product::find($outbound->product_id)->name ?? null;
-                                event(new NotificationEvent([$customer->id], $admin->id, 'outbound_shipped', ['outbound_id' => $outbound->id, 'order_id' => $order->id, 'order_number' => $order->order_number, 'branch_id' => $outbound->branch_id, 'product_name' => $productName]));
-                            } catch (\Exception $e) {
-                                ActivityLog::create([
-                                    'user_id' => $admin->id,
-                                    'action' => 'NOTIFY_FAILED',
-                                    'description' => 'Failed to dispatch notification event for customer outbound ' . $outbound->id . ': ' . $e->getMessage()
-                                ]);
-                            }
-                        }
-                    }
-                } catch (\Exception $e) {
-                    ActivityLog::create([
-                        'user_id' => $admin->id,
-                        'action' => 'NOTIFY_FAILED',
-                        'description' => 'Failed to notify customer for outbound id ' . $outbound->id . ': ' . $e->getMessage()
-                    ]);
-                }
-            }
-
             return response()->json(['message' => 'Outbound berhasil dicatat', 'data' => $outbound], 201);
 
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json(['message' => 'Gagal mencatat outbound: ' . $e->getMessage()], 400);
         }
     }

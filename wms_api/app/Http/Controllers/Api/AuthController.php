@@ -4,7 +4,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\ActivityLog;
-use App\Events\NotificationEvent;
+use App\Events\UserRegistered;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -55,7 +55,7 @@ class AuthController extends Controller
         try {
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
             $payload = ['user_id' => $user->id, 'role' => $user->role, 'branch_id' => $user->branch_id, 'name' => $user->name];
-            event(new NotificationEvent($superadmins, $user->id, 'user_registered', $payload));
+            event(new UserRegistered($user));
         } catch (\Exception $e) {
             ActivityLog::create([
                 'user_id' => $user->id,

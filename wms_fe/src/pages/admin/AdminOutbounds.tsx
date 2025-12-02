@@ -70,8 +70,9 @@ export default function AdminOutbounds() {
     if (!token) return;
 
     try {
-      // Load pending orders
-      const ordersRes = await apiGet("/admin/orders");
+      // Load pending orders (with cache-busting timestamp)
+      const timestamp = new Date().getTime();
+      const ordersRes: Response = await apiGet(`/admin/orders?_t=${timestamp}`);
       const ordersData = await ordersRes.json();
       const orders = Array.isArray(ordersData.data) ? ordersData.data : [];
       
@@ -80,7 +81,7 @@ export default function AdminOutbounds() {
       setPendingOrders(pending);
 
       // Load existing outbounds
-      const outboundsRes = await apiGet("/admin/outbounds");
+      const outboundsRes: Response = await apiGet(`/admin/outbounds?_t=${timestamp}`);
       const outboundsData = await outboundsRes.json();
       setOutbounds(Array.isArray(outboundsData.data) ? outboundsData.data : []);
     } catch (err) {
@@ -112,6 +113,7 @@ export default function AdminOutbounds() {
         return;
       }
 
+      let successCount = 0;
       for (const item of order.items) {
         await apiPost("/admin/outbounds", {
           order_number: order.order_number,
@@ -120,13 +122,14 @@ export default function AdminOutbounds() {
           quantity: item.quantity,
           invoice_date: today,
         });
+        successCount++;
       }
 
-      alert(`Order ${order.order_number} berhasil diproses!`);
+      alert(`✅ Order ${order.order_number} berhasil diproses!`);
       await loadData();
     } catch (err) {
       console.error("Error processing order:", err);
-      alert("Gagal memproses order!");
+      alert("❌ Gagal memproses order! Silakan coba lagi.");
     }
 
     setProcessing(null);

@@ -8,7 +8,7 @@ use App\Models\Inbound;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use App\Events\NotificationEvent;
+use App\Events\ReportCreated;
 
 class ReportController extends Controller
 {
@@ -78,7 +78,7 @@ class ReportController extends Controller
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
             $recipients = $supervisors->merge($superadmins);
             $branchName = \App\Models\Branch::find($adminBranchId)->name ?? null;
-            event(new NotificationEvent($recipients, $admin->id, 'report_created', ['report_id' => $report->id, 'branch_id' => $adminBranchId, 'branch_name' => $branchName, 'report_date' => $report->report_date, 'report_type' => 'harian', 'generated_by' => $admin->name]));
+            event(new ReportCreated($report));
         } catch (\Exception $e) {
             // Log notification failure
             \App\Models\ActivityLog::create([

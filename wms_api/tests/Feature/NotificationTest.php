@@ -155,4 +155,21 @@ class NotificationTest extends TestCase
         $res->assertStatus(200);
         $this->assertDatabaseHas('notifications', ['id' => $notification->id, 'is_read' => 1]);
     }
+
+    public function test_mark_unread_endpoint_updates_notification()
+    {
+        $branch = Branch::create(['name' => 'MarkRead Branch']);
+        $admin = User::create(['name' => 'AdminMark', 'email' => 'admin.m@test.local', 'password' => bcrypt('password'), 'role' => 'admin', 'branch_id' => $branch->id]);
+        $superadmin = User::create(['name' => 'SuperMark', 'email' => 'super.m@test.local', 'password' => bcrypt('password'), 'role' => 'superadmin']);
+
+        $notification = \App\Models\Notification::create(['user_id' => $admin->id, 'actor_id' => $superadmin->id, 'type' => 'test_mark', 'data' => ['msg' => 'hi']]);
+
+        $this->actingAs($admin, 'sanctum');
+        $res = $this->patchJson('/api/notifications/' . $notification->id . '/read');
+        $res->assertStatus(200);
+
+        $res = $this->patchJson('/api/notifications/' . $notification->id . '/unread');
+        $res->assertStatus(200);
+        $this->assertDatabaseHas('notifications', ['id' => $notification->id, 'is_read' => 0]);
+    }
 }

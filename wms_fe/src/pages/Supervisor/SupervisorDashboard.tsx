@@ -2,9 +2,12 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 
 interface DashboardStats {
+  branch_name?: string;
+  total_stock_in_branch?: number;
+  inbounds_today?: number;
+  outbounds_today_invoice?: number;
+  pending_orders_branch?: number;
   pending_reports?: number;
-  total_branch_stock?: number;
-  outbounds_today?: number;
   [key: string]: unknown;
 }
 
@@ -59,7 +62,8 @@ export default function SupervisorDashboard() {
         }
 
         const data = await response.json();
-        setStats(data.stats || data); 
+        console.log('Dashboard data:', data); // Debug
+        setStats(data.data || data.stats || data); 
         
       } catch (err) {
         if (err instanceof Error) {
@@ -81,7 +85,7 @@ export default function SupervisorDashboard() {
           Selamat Datang, {user ? user.name : "Supervisor"}!
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Ini adalah ringkasan untuk cabang Anda.
+          {stats?.branch_name ? `Ini adalah ringkasan untuk ${stats.branch_name}.` : "Ini adalah ringkasan untuk cabang Anda."}
         </p>
       </div>
 
@@ -91,17 +95,32 @@ export default function SupervisorDashboard() {
 
       {stats && (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <StatsCard 
-            title="Laporan Menunggu Verifikasi" 
-            value={stats.pending_reports !== undefined ? stats.pending_reports : "N/A"}
-          />
+          {stats.pending_reports !== undefined && (
+            <StatsCard 
+              title="Laporan Menunggu Verifikasi" 
+              value={stats.pending_reports}
+              details="Laporan yang belum diverifikasi"
+            />
+          )}
           <StatsCard 
             title="Total Stok Cabang" 
-            value={stats.total_branch_stock !== undefined ? stats.total_branch_stock : "N/A"}
+            value={stats.total_stock_in_branch !== undefined ? stats.total_stock_in_branch : "N/A"}
+            details="Total unit produk di cabang"
           />
           <StatsCard 
-            title="Invoice Keluar Hari Ini" 
-            value={stats.outbounds_today !== undefined ? stats.outbounds_today : "N/A"}
+            title="Inbound Hari Ini" 
+            value={stats.inbounds_today !== undefined ? stats.inbounds_today : "N/A"}
+            details="Barang masuk hari ini"
+          />
+          <StatsCard 
+            title="Outbound Hari Ini" 
+            value={stats.outbounds_today_invoice !== undefined ? stats.outbounds_today_invoice : "N/A"}
+            details="Barang keluar hari ini"
+          />
+          <StatsCard 
+            title="Order Pending" 
+            value={stats.pending_orders_branch !== undefined ? stats.pending_orders_branch : "N/A"}
+            details="Order menunggu diproses"
           />
         </div>
       )}

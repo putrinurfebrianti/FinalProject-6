@@ -31,6 +31,7 @@ import AdminReports from "./pages/admin/AdminReports";
 // === COMMON PAGES ===
 import UserProfiles from "./pages/UserProfiles";
 import NotFound from "./pages/OtherPage/NotFound";
+import NotificationsPage from "./pages/Notifications";
 
 import SuperadminDashboard from "./pages/Superadmin/Dashboard"; // Halaman Dashboard baru
 import SuperadminProducts from "./pages/Superadmin/Products"; // Halaman Products baru
@@ -67,6 +68,7 @@ export default function App() {
 
             {/* ==== COMMON AFTER LOGIN ==== */}
             <Route path="/profile" element={<UserProfiles />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
 
             {/* ==== SUPERVISOR ==== */}
             <Route element={<SupervisorRoute />}>

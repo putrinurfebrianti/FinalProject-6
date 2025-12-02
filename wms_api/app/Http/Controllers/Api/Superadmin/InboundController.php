@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ActivityLog;
-use App\Events\NotificationEvent;
+use App\Events\InboundCreated;
 
 class InboundController extends Controller
 {
@@ -58,13 +58,12 @@ class InboundController extends Controller
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
             $recipients = $recipients->merge($superadmins);
             try {
-                $branchName = \App\Models\Branch::find($request->branch_id)->name ?? null;
-                event(new NotificationEvent($recipients, Auth::id(), 'inbound_created', ['inbound_id' => $inbound->id, 'branch_id' => $request->branch_id, 'branch_name' => $branchName, 'quantity' => $request->quantity, 'product_id' => $product->id, 'product_name' => $product->name]));
+                event(new InboundCreated($inbound));
             } catch (\Exception $e) {
                 ActivityLog::create([
                     'user_id' => Auth::id(),
                     'action' => 'NOTIFY_FAILED',
-                    'description' => 'Failed to dispatch notification event for inbound id ' . $inbound->id
+                    'description' => 'Failed to dispatch InboundCreated event for inbound id ' . $inbound->id
                 ]);
             }
 
@@ -132,8 +131,7 @@ class InboundController extends Controller
                         $superadmins = \App\Models\User::where('role', 'superadmin')->get();
                         $recipients = $recipients->merge($superadmins);
                         try {
-                            $branchName = \App\Models\Branch::find($request->branch_id)->name ?? null;
-                            event(new NotificationEvent($recipients, Auth::id(), 'inbound_created', ['inbound_id' => $inbound->id, 'branch_id' => $request->branch_id, 'branch_name' => $branchName, 'quantity' => $item['quantity'], 'product_id' => $product->id, 'product_name' => $product->name]));
+                            event(new InboundCreated($inbound));
                         } catch (\Exception $nex) {
                             ActivityLog::create([
                                 'user_id' => Auth::id(),

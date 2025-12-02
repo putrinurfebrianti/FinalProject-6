@@ -115,23 +115,16 @@ export default function CustomerDashboard() {
       
       {error && <p className="text-red-500">Error: {error}</p>}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <StatsCard 
           title="Total Pesanan Saya" 
           value={stats.total_orders || 0}
-          details={(stats.pending_orders || 0) > 0 ? `Anda punya ${stats.pending_orders} order pending` : "Semua pesanan telah diproses"}
+          details="Jumlah seluruh pesanan yang pernah Anda buat"
         />
         <StatsCard 
           title="Pesanan Pending" 
           value={stats.pending_orders || 0}
-        />
-        <StatsCard 
-          title="Role Anda" 
-          value={user?.role?.toUpperCase() || "USER"}
-        />
-        <StatsCard 
-          title="ID Cabang Anda" 
-          value={user?.branch_id !== null ? user?.branch_id || "N/A" : "N/A"}
+          details={(stats.pending_orders || 0) > 0 ? "Menunggu diproses oleh admin cabang" : "Semua pesanan telah diproses"}
         />
       </div>
 

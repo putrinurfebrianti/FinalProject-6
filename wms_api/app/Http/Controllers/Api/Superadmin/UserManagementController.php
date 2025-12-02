@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ActivityLog;
-use App\Events\NotificationEvent;
+use App\Events\UserUpdated;
+use App\Events\UserDeleted;
 use Illuminate\Validation\Rule;
 
 class UserManagementController extends Controller
@@ -63,7 +64,7 @@ class UserManagementController extends Controller
 
         // Notify the updated user about changes (queued)
         try {
-            event(new NotificationEvent([$user->id], Auth::id(), 'user_updated', ['user_id' => $user->id, 'role' => $user->role, 'name' => $user->name]));
+            event(new UserUpdated($user));
         } catch (\Exception $e) {
             ActivityLog::create([
                 'user_id' => Auth::id(),
@@ -88,8 +89,7 @@ class UserManagementController extends Controller
 
         // Notify superadmins that a user was deleted (queued)
         try {
-            $superadmins = \App\Models\User::where('role', 'superadmin')->get();
-            event(new NotificationEvent($superadmins, Auth::id() ?? null, 'user_deleted', ['deleted_user_id' => $user->id, 'deleted_user_name' => $user->name]));
+            event(new UserDeleted($user));
         } catch (\Exception $e) {
             ActivityLog::create([
                 'user_id' => Auth::id(),

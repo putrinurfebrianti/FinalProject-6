@@ -11,10 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->decimal('price', 12, 2)->default(0)->after('category');
-            $table->string('image')->nullable()->after('price');
-        });
+        // Only add the columns if they don't already exist — this migration may be applied
+        // on databases that already had `price` or `image` added earlier.
+        if (!Schema::hasColumn('products', 'price')) {
+            Schema::table('products', function (Blueprint $table) {
+                $table->decimal('price', 12, 2)->default(0)->after('category');
+            });
+        }
+
+        if (!Schema::hasColumn('products', 'image')) {
+            Schema::table('products', function (Blueprint $table) {
+                $table->string('image')->nullable()->after('price');
+            });
+        }
     }
 
     /**
@@ -22,8 +31,16 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->dropColumn(['price', 'image']);
-        });
+        // Drop columns if they exist
+        if (Schema::hasColumn('products', 'image')) {
+            Schema::table('products', function (Blueprint $table) {
+                $table->dropColumn('image');
+            });
+        }
+        if (Schema::hasColumn('products', 'price')) {
+            Schema::table('products', function (Blueprint $table) {
+                $table->dropColumn('price');
+            });
+        }
     }
 };
