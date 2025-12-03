@@ -13,7 +13,7 @@ interface BranchStock {
   };
 }
 
-const normalizeStocks = (data: any): BranchStock[] => {
+const normalizeStocks = (data: unknown): BranchStock[] => {
   if (Array.isArray(data)) return data;
   if (Array.isArray(data?.stocks)) return data.stocks;
   if (Array.isArray(data?.data)) return data.data;
@@ -47,7 +47,7 @@ export default function AdminBranchStock2() {
           isHoliday: isHolidayForDate(date),
         };
       }),
-    [viewYear, viewMonth, daysInMonth]
+    [viewYear, viewMonth, daysInMonth, isHolidayForDate]
   );
 
   const [perDayOutbounds, setPerDayOutbounds] = useState<Record<number, Record<number, number>>>({});
@@ -74,7 +74,7 @@ export default function AdminBranchStock2() {
           const outJson = await outRes.json().catch(() => ({ data: [] }));
           const arr = Array.isArray(outJson) ? outJson : outJson.data ?? [];
           const map: Record<number, Record<number, number>> = {};
-          arr.forEach((o: any) => {
+          arr.forEach((o: { invoice_date: string; product_id: number; quantity: number }) => {
             const d = new Date(o.invoice_date);
             if (d.getFullYear() !== viewYear || d.getMonth() !== viewMonth) return;
             const day = d.getDate();
@@ -87,8 +87,8 @@ export default function AdminBranchStock2() {
         } catch (err) {
           console.warn("Failed to fetch outbounds", err);
         }
-      } catch (err: any) {
-        setError(err?.message ?? "Terjadi error");
+      } catch (err) {
+        setError("Terjadi error");
       } finally {
         setLoading(false);
       }
@@ -101,14 +101,13 @@ export default function AdminBranchStock2() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <h1 className="text-2xl font-semibold">Stok Cabang Anda</h1>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 rounded px-2 py-1">
+          <div className="flex items-center gap-2 px-2 py-1 bg-white border border-gray-200 rounded dark:bg-gray-800">
             <button
               className="px-1 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
               onClick={() => {
-                // prev month
                 const m = viewMonth - 1;
                 if (m < 0) {
                   setViewYear((y) => y - 1);
@@ -125,7 +124,6 @@ export default function AdminBranchStock2() {
             <button
               className="px-1 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
               onClick={() => {
-                // next month
                 const m = viewMonth + 1;
                 if (m > 11) {
                   setViewYear((y) => y + 1);
@@ -156,7 +154,7 @@ export default function AdminBranchStock2() {
             </select>
           </div>
 
-          <button onClick={() => setVisibleRows(100)} className="px-3 py-1 rounded bg-gray-100 text-sm">
+          <button onClick={() => setVisibleRows(100)} className="px-3 py-1 text-sm bg-gray-100 rounded">
             Reset rows
           </button>
         </div>
@@ -167,21 +165,21 @@ export default function AdminBranchStock2() {
 
       {!loading && !error && stocks.length > 0 && (
         <div className="overflow-x-auto">
-          <table className="w-full border border-gray-300 text-xs rounded-lg shadow-md">
+          <table className="w-full text-xs border border-gray-300 rounded-lg shadow-md">
             <thead>
-              <tr className="text-black font-semibold text-center">
-                <th className="border border-gray-300 px-3 py-2">NO.</th>
-                <th className="border border-gray-300 px-3 py-2">SKU</th>
-                <th className="border border-gray-300 px-3 py-2">DESKRIPSI JENIS</th>
-                <th className="border border-gray-300 px-3 py-2">LOT</th>
-                <th className="border border-gray-300 px-3 py-2">STOCK AWAL</th>
+              <tr className="font-semibold text-center text-black">
+                <th className="px-3 py-2 border border-gray-300">NO.</th>
+                <th className="px-3 py-2 border border-gray-300">SKU</th>
+                <th className="px-3 py-2 border border-gray-300">DESKRIPSI JENIS</th>
+                <th className="px-3 py-2 border border-gray-300">LOT</th>
+                <th className="px-3 py-2 border border-gray-300">STOCK AWAL</th>
                 {days.map((d) => (
                   <th key={d.day} className={`border border-gray-300 px-3 py-2 text-sm ${d.isHoliday ? "bg-red-300" : d.isWeekend ? "bg-red-200" : "bg-green-200"}`}>
                     {d.day}
                   </th>
                 ))}
-                <th className="border border-gray-300 px-3 py-2 text-sm">Total</th>
-                <th className="border border-gray-300 px-3 py-2 text-sm">Sisa Stok</th>
+                <th className="px-3 py-2 text-sm border border-gray-300">Total</th>
+                <th className="px-3 py-2 text-sm border border-gray-300">Sisa Stok</th>
               </tr>
             </thead>
             <tbody>
@@ -193,64 +191,64 @@ export default function AdminBranchStock2() {
                 const remaining = Math.max(0, item.stock - total);
                 return (
                   <tr key={item.id} className="border border-gray-300" style={{ background: rowColor }}>
-                    <td className="border border-gray-300 px-3 py-2 text-center">{index + 1}</td>
-                    <td className="border border-gray-300 px-3 py-2 text-center">{item.product?.sku}</td>
-                    <td className="border border-gray-300 px-3 py-2">{item.product?.name}</td>
-                    <td className="border border-gray-300 px-3 py-2 text-center">LOT-XXXX</td>
-                    <td className="border border-gray-300 px-3 py-2 text-center">{item.stock}</td>
+                    <td className="px-3 py-2 text-center border border-gray-300">{index + 1}</td>
+                    <td className="px-3 py-2 text-center border border-gray-300">{item.product?.sku}</td>
+                    <td className="px-3 py-2 border border-gray-300">{item.product?.name}</td>
+                    <td className="px-3 py-2 text-center border border-gray-300">LOT-XXXX</td>
+                    <td className="px-3 py-2 text-center border border-gray-300">{item.stock}</td>
                     {days.map((d) => {
                       const dayNum = d.day;
                       const qty = perDayOutbounds[pid]?.[dayNum] ?? 0;
-                      const cellStyle: any = { background: qty > 0 ? "#D5E8FF" : rowColor, color: qty > 0 ? "#0b3d91" : "#444" };
+                      const cellStyle: React.CSSProperties = { background: qty > 0 ? "#D5E8FF" : rowColor, color: qty > 0 ? "#0b3d91" : "#444" };
                       return (
-                        <td key={dayNum} className="border border-gray-300 px-3 py-2 text-center font-semibold" style={cellStyle}>
+                        <td key={dayNum} className="px-3 py-2 font-semibold text-center border border-gray-300" style={cellStyle}>
                           {qty}
                         </td>
                       );
                     })}
-                    <td className="border border-gray-300 px-3 py-2 text-center text-sm font-semibold">{total}</td>
-                    <td className="border border-gray-300 px-3 py-2 text-center text-sm font-semibold">{remaining}</td>
+                    <td className="px-3 py-2 text-sm font-semibold text-center border border-gray-300">{total}</td>
+                    <td className="px-3 py-2 text-sm font-semibold text-center border border-gray-300">{remaining}</td>
                   </tr>
                 );
               })}
             </tbody>
             <tfoot>
-              <tr className="bg-gray-100 font-semibold text-sm">
-                <td className="border border-gray-300 px-3 py-2 text-center" colSpan={5}>
+              <tr className="text-sm font-semibold bg-gray-100">
+                <td className="px-3 py-2 text-center border border-gray-300" colSpan={5}>
                   Total (per hari)
                 </td>
                 {days.map((d) => (
-                  <td key={d.day} className="border border-gray-300 px-3 py-2 text-center font-semibold">
+                  <td key={d.day} className="px-3 py-2 font-semibold text-center border border-gray-300">
                     {totalsPerDay[d.day - 1] || 0}
                   </td>
                 ))}
-                <td className="border border-gray-300 px-3 py-2 text-center font-semibold">{totalsPerMonth}</td>
-                <td className="border border-gray-300 px-3 py-2 text-center font-semibold">-</td>
+                <td className="px-3 py-2 font-semibold text-center border border-gray-300">{totalsPerMonth}</td>
+                <td className="px-3 py-2 font-semibold text-center border border-gray-300">-</td>
               </tr>
             </tfoot>
           </table>
 
-          <div className="mt-4 flex items-center justify-between">
+          <div className="flex items-center justify-between mt-4">
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded bg-green-200 inline-block" /> Weekday
+                <span className="inline-block w-3 h-3 bg-green-200 rounded" /> Weekday
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded bg-red-200 inline-block" /> Weekend
+                <span className="inline-block w-3 h-3 bg-red-200 rounded" /> Weekend
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded bg-red-300 inline-block" /> Holiday
+                <span className="inline-block w-3 h-3 bg-red-300 rounded" /> Holiday
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded inline-block" style={{ background: "#D5E8FF" }} /> Outbound &gt; 0
+                <span className="inline-block w-3 h-3 rounded" style={{ background: "#D5E8FF" }} /> Outbound &gt; 0
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded inline-block" style={{ background: "#FFFBEC" }} /> Product color rows
+                <span className="inline-block w-3 h-3 rounded" style={{ background: "#FFFBEC" }} /> Product color rows
               </div>
             </div>
             <div>
               {stocks.length > visibleRows && (
-                <button onClick={() => setVisibleRows((v) => v + 100)} className="px-3 py-1 rounded bg-blue-500 text-white">
+                <button onClick={() => setVisibleRows((v) => v + 100)} className="px-3 py-1 text-white bg-blue-500 rounded">
                   Load more
                 </button>
               )}

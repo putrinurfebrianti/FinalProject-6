@@ -10,7 +10,6 @@ class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        // Truncate table untuk menghindari duplikasi
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Product::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');

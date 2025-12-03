@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-// Tipe data Produk sesuai Database Laravel
 interface Product {
   id: number;
   sku: string;
@@ -27,10 +26,8 @@ const Products = () => {
     central_stock: 0,
   });
 
-  // URL API
   const API_URL = "http://127.0.0.1:8000/api";
 
-  // 1. FETCH DATA (READ)
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -47,27 +44,22 @@ const Products = () => {
     fetchProducts();
   }, []);
 
-  // Handle Input Form
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // 2. SUBMIT FORM (CREATE & UPDATE)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (isEditing && currentId) {
-        // --- UPDATE ---
         await axios.put(`${API_URL}/superadmin/products/${currentId}`, formData);
         alert("Produk berhasil diupdate!");
       } else {
-        // --- CREATE ---
         await axios.post(`${API_URL}/superadmin/products`, formData);
         alert("Produk baru berhasil dibuat!");
       }
       
-      // Reset & Refresh
       setIsFormOpen(false);
       resetForm();
       fetchProducts();
@@ -77,21 +69,19 @@ const Products = () => {
       alert("Gagal menyimpan: " + JSON.stringify(error.response?.data?.errors || error.message));
     }
   };
-
-  // 3. DELETE PRODUCT
+  
   const handleDelete = async (id: number) => {
     if (confirm("Yakin ingin menghapus produk ini?")) {
       try {
         await axios.delete(`${API_URL}/superadmin/products/${id}`);
         alert("Produk dihapus.");
         fetchProducts();
-      } catch (error: any) {
-        alert("Gagal menghapus produk.");
+      } catch {
+        alert("Gagal menghapus produk!");
       }
     }
   };
 
-  // Helper: Buka Form Edit
   const openEditForm = (product: Product) => {
     setIsFormOpen(true);
     setIsEditing(true);
@@ -104,7 +94,6 @@ const Products = () => {
     });
   };
 
-  // Helper: Reset Form
   const resetForm = () => {
     setIsEditing(false);
     setCurrentId(null);
@@ -113,9 +102,8 @@ const Products = () => {
 
   return (
     <div className="mx-auto max-w-270">
-      {/* Header Halaman */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white">
+      <div className="flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="font-semibold text-black text-title-md2 dark:text-white">
           Manajemen Produk
         </h2>
         <nav>
@@ -126,19 +114,17 @@ const Products = () => {
         </nav>
       </div>
 
-      {/* Tombol Tambah */}
       <div className="mb-4">
         <button
           onClick={() => { setIsFormOpen(!isFormOpen); resetForm(); }}
-          className="flex justify-center rounded bg-blue-600 py-2 px-6 font-medium text-white hover:bg-blue-700 transition duration-150"
+          className="flex justify-center px-6 py-2 font-medium text-white transition duration-150 bg-blue-600 rounded hover:bg-blue-700"
         >
           {isFormOpen ? "Tutup Form" : "Tambah Produk Baru"}
         </button>
       </div>
 
-      {/* --- FORM SECTION (Muncul jika isFormOpen = true) --- */}
       {isFormOpen && (
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark mb-6">
+        <div className="mb-6 bg-white border rounded-sm border-stroke shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
             <h3 className="font-medium text-black dark:text-white">
               {isEditing ? "Edit Produk" : "Input Produk Baru"}
@@ -203,7 +189,7 @@ const Products = () => {
                 </div>
               </div>
 
-              <button type="submit" className="flex w-full justify-center rounded bg-blue-600 p-3 font-medium text-white hover:bg-blue-700">
+              <button type="submit" className="flex justify-center w-full p-3 font-medium text-white bg-blue-600 rounded hover:bg-blue-700">
                 {isEditing ? "Update Produk" : "Simpan Produk"}
               </button>
             </div>
@@ -211,24 +197,23 @@ const Products = () => {
         </div>
       )}
 
-      {/* --- TABLE SECTION --- */}
       <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
         <div className="max-w-full overflow-x-auto">
           <table className="w-full table-auto">
             <thead>
-              <tr className="bg-gray-2 text-left dark:bg-meta-4">
+              <tr className="text-left bg-gray-2 dark:bg-meta-4">
                 <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">SKU</th>
                 <th className="min-w-[220px] py-4 px-4 font-medium text-black dark:text-white">Nama Produk</th>
                 <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">Kategori</th>
-                <th className="py-4 px-4 font-medium text-black dark:text-white">Stok Pusat</th>
-                <th className="py-4 px-4 font-medium text-black dark:text-white">Actions</th>
+                <th className="px-4 py-4 font-medium text-black dark:text-white">Stok Pusat</th>
+                <th className="px-4 py-4 font-medium text-black dark:text-white">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="text-center py-5">Loading...</td></tr>
+                <tr><td colSpan={5} className="py-5 text-center">Loading...</td></tr>
               ) : products.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-5">Tidak ada data produk.</td></tr>
+                <tr><td colSpan={5} className="py-5 text-center">Tidak ada data produk.</td></tr>
               ) : (
                 products.map((product) => (
                   <tr key={product.id}>
@@ -242,7 +227,7 @@ const Products = () => {
                       <p className="text-black dark:text-white">{product.category}</p>
                     </td>
                     <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                      <p className="inline-flex rounded-full bg-green-100 text-green-800 py-1 px-3 text-sm font-medium">
+                      <p className="inline-flex px-3 py-1 text-sm font-medium text-green-800 bg-green-100 rounded-full">
                         {product.central_stock}
                       </p>
                     </td>
@@ -251,15 +236,14 @@ const Products = () => {
                         {/* TOMBOL EDIT (Biru) */}
                         <button 
                           onClick={() => openEditForm(product)} 
-                          className="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-sm transition duration-150"
+                          className="px-3 py-1 text-sm text-white transition duration-150 bg-blue-500 rounded hover:bg-blue-600"
                         >
                           Edit
                         </button>
                         
-                        {/* TOMBOL HAPUS (Merah) */}
                         <button 
                           onClick={() => handleDelete(product.id)} 
-                          className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded text-sm transition duration-150"
+                          className="px-3 py-1 text-sm text-white transition duration-150 bg-red-500 rounded hover:bg-red-600"
                         >
                           Hapus
                         </button>

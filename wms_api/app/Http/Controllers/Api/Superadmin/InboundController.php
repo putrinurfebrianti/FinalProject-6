@@ -53,7 +53,6 @@ class InboundController extends Controller
                 'description' => 'Superadmin mengirim ' . $request->quantity . ' unit SKU ' . $product->sku . ' ke Cabang ' . $request->branch_id
             ]);
 
-            // Notify branch admins and superadmins via queued event (includes names)
             $recipients = \App\Models\User::where('role', 'admin')->where('branch_id', $request->branch_id)->get();
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
             $recipients = $recipients->merge($superadmins);
@@ -125,7 +124,6 @@ class InboundController extends Controller
                     'description' => 'Superadmin mengirim ' . $item['quantity'] . ' unit SKU ' . $product->sku . ' ke Cabang ' . $request->branch_id
                 ]);
 
-                    // Notify branch admins and superadmins for each created inbound
                     try {
                         $recipients = \App\Models\User::where('role', 'admin')->where('branch_id', $request->branch_id)->get();
                         $superadmins = \App\Models\User::where('role', 'superadmin')->get();
@@ -140,7 +138,6 @@ class InboundController extends Controller
                             ]);
                         }
                     } catch (\Exception $nex) {
-                        // don't break the bulk creation if notification fails, but log to activity
                         ActivityLog::create([
                             'user_id' => Auth::id(),
                             'action' => 'NOTIFY_FAILED',

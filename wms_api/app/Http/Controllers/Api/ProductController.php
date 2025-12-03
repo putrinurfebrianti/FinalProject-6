@@ -32,7 +32,6 @@ class ProductController extends Controller
 
         $product = Product::create($request->all());
 
-        // Notify superadmins and branch admins about new product (queued via domain event)
         try {
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
             $admins = \App\Models\User::where('role', 'admin')->get();
@@ -68,7 +67,6 @@ class ProductController extends Controller
 
         $product->update($request->all());
 
-        // Notify superadmins and branch admins about updated product (queued)
         try {
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
             $admins = \App\Models\User::where('role', 'admin')->get();
@@ -88,7 +86,6 @@ class ProductController extends Controller
     {
         $product->delete();
 
-        // Notify superadmins and branch admins about deleted product (queued)
         try {
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
             $admins = \App\Models\User::where('role', 'admin')->get();

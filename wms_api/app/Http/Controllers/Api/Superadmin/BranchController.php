@@ -33,7 +33,6 @@ class BranchController extends Controller
 
         $branch = Branch::create($request->all());
 
-        // Notify superadmins that a new branch has been created (queued)
         try {
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
             event(new BranchCreated($branch));
@@ -65,7 +64,6 @@ class BranchController extends Controller
 
         $branch->update($request->all());
 
-        // Notify superadmins that branch was updated (queued)
         try {
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
             event(new BranchUpdated($branch));
@@ -83,7 +81,6 @@ class BranchController extends Controller
     {
         $branch->delete();
 
-        // Notify superadmins that branch was deleted (queued)
         try {
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
             event(new BranchDeleted($branch));

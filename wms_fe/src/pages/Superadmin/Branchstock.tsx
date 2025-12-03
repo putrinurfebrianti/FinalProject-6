@@ -3,24 +3,22 @@ import { ChevronDownIcon, ChevronUpIcon } from "../../icons";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-// Tipe data Stok Cabang (sesuai API)
 interface BranchStock {
   id: number;
   branch_id: number;
   product_id: number;
   stock: number;
-  branch: { // Data relasi
+  branch: { 
     id: number;
     name: string;
   };
-  product: { // Data relasi
+  product: { 
     id: number;
     sku: string;
     name: string;
   };
 }
 
-// Tipe data untuk form edit
 interface EditFormData {
   id: number | null;
   branchName: string;
@@ -34,8 +32,6 @@ const SuperadminBranchStock = () => {
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  
-  // State untuk Modal/Form Edit
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editForm, setEditForm] = useState<EditFormData>({
     id: null,
@@ -44,22 +40,16 @@ const SuperadminBranchStock = () => {
     stock: 0,
   });
 
-  // URL API
   const API_URL = "http://127.0.0.1:8000/api";
 
-  // 1. FETCH DATA (READ)
   const fetchBranchStock = async () => {
     try {
       setLoading(true);
-      // Panggil endpoint baru kita
       console.debug('SuperadminBranchStock fetch call - axios defaults', axios.defaults);
       const response = await axios.get('/superadmin/branch-stock');
       setStockList(response.data.data);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Gagal ambil data stok cabang:", error);
-      if (error.response) {
-        console.error('Error status/data:', error.response.status, error.response.data);
-      }
     } finally {
       setLoading(false);
     }
@@ -69,13 +59,11 @@ const SuperadminBranchStock = () => {
     fetchBranchStock();
   }, []);
 
-  // Debounce the search input so we don't filter on every keystroke
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearchTerm(searchTerm.trim().toLowerCase()), 300);
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  // build expanded initial state when stockList changes (open all branches by default)
   useEffect(() => {
     const initial: Record<number, boolean> = {};
     stockList.forEach((s) => {
@@ -84,7 +72,6 @@ const SuperadminBranchStock = () => {
     setExpanded(initial);
   }, [stockList]);
 
-  // Pre-compute grouped and filtered data so we can show total matches in header, etc.
   const groups = stockList.reduce((acc: Record<number, BranchStock[]>, item) => {
     if (!acc[item.branch.id]) acc[item.branch.id] = [];
     acc[item.branch.id].push(item);
@@ -107,36 +94,32 @@ const SuperadminBranchStock = () => {
 
   const totalMatches = Object.values(filteredGroups).reduce((s, arr) => s + arr.length, 0);
 
-  // Handle Input Form
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEditForm({
       ...editForm,
-      stock: parseInt(e.target.value) || 0 // Hanya update stok
+      stock: parseInt(e.target.value) || 0
     });
   };
 
-  // 2. SUBMIT FORM (UPDATE)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editForm.id) return;
 
     try {
-      // Panggil endpoint update
       await axios.put(`${API_URL}/superadmin/branch-stock/${editForm.id}`, {
-        stock: editForm.stock // Kirim hanya data stok baru
+        stock: editForm.stock
       });
       
       alert("Stok berhasil di-update manual!");
       setIsModalOpen(false);
-      fetchBranchStock(); // Refresh tabel
+      fetchBranchStock();
 
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error update stok:", error);
-      alert("Gagal update: " + JSON.stringify(error.response?.data?.errors || error.message));
+      alert("Gagal update stok");
     }
   };
 
-  // Helper: Buka Modal Edit
   const openEditModal = (item: BranchStock) => {
     setEditForm({
       id: item.id,
@@ -149,9 +132,8 @@ const SuperadminBranchStock = () => {
 
   return (
     <div className="mx-auto max-w-270">
-      {/* Header Halaman */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white">
+      <div className="flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="font-semibold text-black text-title-md2 dark:text-white">
           Manajemen Stok Cabang
         </h2>
         <nav>
@@ -162,10 +144,9 @@ const SuperadminBranchStock = () => {
         </nav>
       </div>
 
-      {/* --- MODAL EDIT (Muncul jika isModalOpen = true) --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark w-full max-w-lg">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-lg bg-white border rounded-sm border-stroke shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
               <h3 className="font-medium text-black dark:text-white">
                 Edit Stok Manual (Override)
@@ -173,7 +154,6 @@ const SuperadminBranchStock = () => {
             </div>
             <form onSubmit={handleSubmit}>
               <div className="p-6.5">
-                {/* Info (Read-only) */}
                 <div className="mb-4.5">
                   <label className="mb-2.5 block text-black dark:text-white">Cabang</label>
                   <input type="text" value={editForm.branchName} disabled className="w-full rounded border-[1.5px] border-stroke bg-gray-200 py-3 px-5 font-medium"/>
@@ -183,7 +163,6 @@ const SuperadminBranchStock = () => {
                   <input type="text" value={editForm.productName} disabled className="w-full rounded border-[1.5px] border-stroke bg-gray-200 py-3 px-5 font-medium"/>
                 </div>
                 
-                {/* Input Stok (Bisa diedit) */}
                 <div className="mb-4.5">
                   <label className="mb-2.5 block text-black dark:text-white">Jumlah Stok BARU</label>
                   <input
@@ -197,10 +176,10 @@ const SuperadminBranchStock = () => {
                 </div>
 
                 <div className="flex gap-4">
-                  <button type="submit" className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray">
+                  <button type="submit" className="flex justify-center w-full p-3 font-medium rounded bg-primary text-gray">
                     Update Stok
                   </button>
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex w-full justify-center rounded bg-gray-300 p-3 font-medium text-black">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex justify-center w-full p-3 font-medium text-black bg-gray-300 rounded">
                     Batal
                   </button>
                 </div>
@@ -210,9 +189,8 @@ const SuperadminBranchStock = () => {
         </div>
       )}
       
-      {/* --- TABLE SECTION --- */}
       <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center justify-between mb-6">
           <h4 className="text-xl font-semibold text-black dark:text-white">Daftar Stok di Semua Cabang</h4>
           <div className="flex items-center gap-2">
             <div className="relative">
@@ -221,15 +199,15 @@ const SuperadminBranchStock = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Cari produk (nama/SKU)..."
-                className="rounded border border-stroke px-3 py-2 text-sm outline-none focus:border-primary"
+                className="px-3 py-2 text-sm border rounded outline-none border-stroke focus:border-primary"
               />
               {searchTerm ? (
-                <button onClick={() => setSearchTerm("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">✖</button>
+                <button onClick={() => setSearchTerm("")} className="absolute text-gray-400 -translate-y-1/2 right-3 top-1/2">✖</button>
               ) : (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+                <span className="absolute text-gray-400 -translate-y-1/2 right-3 top-1/2">🔍</span>
               )}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400 ml-3">
+            <div className="ml-3 text-sm text-gray-600 dark:text-gray-400">
               {debouncedSearchTerm ? `${totalMatches} hasil` : `${Object.keys(groups).length} cabang`}
             </div>
             <button onClick={() => {
@@ -239,7 +217,7 @@ const SuperadminBranchStock = () => {
                 branchIds.forEach(id => next[id] = anyCollapsed);
                 setExpanded(next);
               }}
-              className="text-sm rounded border px-3 py-1 text-black bg-gray-100 hover:bg-gray-200"
+              className="px-3 py-1 text-sm text-black bg-gray-100 border rounded hover:bg-gray-200"
             >
               {Object.keys(filteredGroups).some(k => !expanded[parseInt(k)]) ? 'Expand All' : 'Collapse All'}
             </button>
@@ -248,24 +226,23 @@ const SuperadminBranchStock = () => {
         <div className="max-w-full overflow-x-auto">
           <table className="w-full table-auto">
             <thead>
-              <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                <th className="py-4 px-4 font-medium text-black dark:text-white">ID Stok</th>
-                <th className="py-4 px-4 font-medium text-black dark:text-white">Cabang</th>
-                <th className="py-4 px-4 font-medium text-black dark:text-white">SKU</th>
+              <tr className="text-left bg-gray-2 dark:bg-meta-4">
+                <th className="px-4 py-4 font-medium text-black dark:text-white">ID Stok</th>
+                <th className="px-4 py-4 font-medium text-black dark:text-white">Cabang</th>
+                <th className="px-4 py-4 font-medium text-black dark:text-white">SKU</th>
                 <th className="min-w-[220px] py-4 px-4 font-medium text-black dark:text-white">Nama Produk</th>
-                <th className="py-4 px-4 font-medium text-black dark:text-white">Stok</th>
-                <th className="py-4 px-4 font-medium text-black dark:text-white">Actions</th>
+                <th className="px-4 py-4 font-medium text-black dark:text-white">Stok</th>
+                <th className="px-4 py-4 font-medium text-black dark:text-white">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="text-center py-5">Loading...</td></tr>
+                <tr><td colSpan={6} className="py-5 text-center">Loading...</td></tr>
               ) : stockList.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-5">Belum ada stok di cabang manapun. (Silakan buat Inbound).</td></tr>
+                <tr><td colSpan={6} className="py-5 text-center">Belum ada stok di cabang manapun. (Silakan buat Inbound).</td></tr>
               ) : totalMatches === 0 ? (
-                <tr><td colSpan={6} className="text-center py-5">Tidak ditemukan produk untuk kata kunci pencarian tersebut.</td></tr>
+                <tr><td colSpan={6} className="py-5 text-center">Tidak ditemukan produk untuk kata kunci pencarian tersebut.</td></tr>
               ) : (
-                // group the stocks by branch id
                 (() => {
                   const groups = stockList.reduce((acc: Record<number, BranchStock[]>, item) => {
                     if (!acc[item.branch.id]) acc[item.branch.id] = [];
@@ -273,7 +250,6 @@ const SuperadminBranchStock = () => {
                     return acc;
                   }, {} as Record<number, BranchStock[]>);
 
-                  // Apply search filter (debounced) to items and hide empty groups
                   const filteredGroups: Record<number, BranchStock[]> = Object.keys(groups).reduce((acc, k) => {
                     const key = parseInt(k);
                     const items = groups[key];
@@ -340,7 +316,7 @@ const SuperadminBranchStock = () => {
                               <p className="text-black dark:text-white">{item.product.name}</p>
                             </td>
                             <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                              <p className="inline-flex rounded-full bg-blue-100 text-blue-800 py-1 px-3 text-sm font-medium">
+                              <p className="inline-flex px-3 py-1 text-sm font-medium text-blue-800 bg-blue-100 rounded-full">
                                 {item.stock}
                               </p>
                             </td>
@@ -348,7 +324,7 @@ const SuperadminBranchStock = () => {
                               <div className="flex items-center space-x-3.5">
                                 <button 
                                   onClick={() => openEditModal(item)} 
-                                  className="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-sm transition duration-150"
+                                  className="px-3 py-1 text-sm text-white transition duration-150 bg-blue-500 rounded hover:bg-blue-600"
                                 >
                                   Edit Stok
                                 </button>

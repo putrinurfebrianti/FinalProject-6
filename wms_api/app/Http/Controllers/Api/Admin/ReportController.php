@@ -19,7 +19,7 @@ class ReportController extends Controller
                          ->with('generator:id,name', 'verifier:id,name')
                          ->orderBy('report_date', 'desc')
                          ->get();
-                         
+
         return response()->json(['data' => $reports]);
     }
 
@@ -33,7 +33,7 @@ class ReportController extends Controller
                                 ->where('report_date', $today)
                                 ->where('report_type', 'harian')
                                 ->first();
-        
+
         if ($existingReport) {
             return response()->json(['message' => 'Laporan harian untuk hari ini sudah dibuat.'], 409);
         }
@@ -44,14 +44,14 @@ class ReportController extends Controller
                                   ->select('product_id', DB::raw('SUM(quantity) as total_quantity'))
                                   ->groupBy('product_id')
                                   ->get();
-                                  
+
         $inboundsToday = Inbound::where('branch_id', $adminBranchId)
                                 ->whereDate('date', $today)
                                 ->with('product:id,sku,name')
                                 ->select('product_id', DB::raw('SUM(quantity) as total_quantity'))
                                 ->groupBy('product_id')
                                 ->get();
-        
+
         $reportData = [
             'summary' => [
                 'total_outbound_items' => $outboundsToday->sum('total_quantity'),
@@ -72,7 +72,6 @@ class ReportController extends Controller
             'data' => $reportData
         ]);
 
-        // Notify supervisors of the branch and superadmins via queued notification
         try {
             $supervisors = \App\Models\User::where('role', 'supervisor')->where('branch_id', $adminBranchId)->get();
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();

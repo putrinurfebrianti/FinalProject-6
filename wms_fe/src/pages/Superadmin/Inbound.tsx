@@ -5,7 +5,6 @@ import DatePicker from "../../components/form/DatePicker";
 import Button from "../../components/ui/button/Button";
 import { CalenderIcon } from "../../icons";
 
-// --- Interfaces ---
 interface Branch {
   id: number;
   name: string;
@@ -18,30 +17,23 @@ interface Product {
   central_stock: number;
 }
 
-// Tipe untuk item yang akan dikirim
 interface InboundItem {
-  product_id: string; // string dulu biar bisa select placeholder
+  product_id: string;
   quantity: number;
 }
 
 const SuperadminInbound = () => {
-  // Data Master (untuk dropdown)
   const [branches, setBranches] = useState<Branch[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
-  // Form State
   const [selectedBranch, setSelectedBranch] = useState("");
-  // use Date object for flatpickr value to make open/select behavior consistent
-  const [date, setDate] = useState<Date | null>(new Date()); // Default hari ini
-  const flatpickrRef = useRef<any>(null);
+  const [date, setDate] = useState<Date | null>(new Date());
+  const flatpickrRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<InboundItem[]>([
-    { product_id: "", quantity: 1 } // Minimal 1 item
+    { product_id: "", quantity: 1 }
   ]);
 
-  
-
-  // 1. FETCH DATA (Branches & Products)
   useEffect(() => {
     const fetchMasterData = async () => {
       try {
@@ -61,7 +53,6 @@ const SuperadminInbound = () => {
     fetchMasterData();
   }, []);
 
-  // 2. HANDLE FORM DINAMIS (Tambah/Hapus Item)
   const addItemRow = () => {
     setItems([...items, { product_id: "", quantity: 1 }]);
   };
@@ -72,24 +63,20 @@ const SuperadminInbound = () => {
     setItems(newItems);
   };
 
-  const handleItemChange = (index: number, field: keyof InboundItem, value: any) => {
+  const handleItemChange = (index: number, field: keyof InboundItem, value: string | number) => {
     const newItems = [...items];
     // @ts-ignore
     newItems[index][field] = value;
     setItems(newItems);
   };
 
-  // 3. SUBMIT FORM (Kirim ke Backend)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validasi Sederhana
     if (!selectedBranch) return alert("Pilih cabang tujuan!");
     if (items.some(i => !i.product_id || i.quantity <= 0)) {
       return alert("Pastikan semua produk dipilih dan jumlah > 0");
     }
 
-    // Siapkan Payload JSON sesuai Backend (Bulk Inbound)
     const payload = {
       branch_id: parseInt(selectedBranch),
       date: date ? new Date(date).toISOString().split('T')[0] : null,
@@ -100,17 +87,11 @@ const SuperadminInbound = () => {
     };
 
     try {
-      // Panggil endpoint BULK yang sudah kita buat di backend
       await axios.post('/superadmin/inbounds/bulk', payload);
       
       alert("Berhasil! Stok telah dikirim ke cabang.");
-      
-      // Reset Form
       setItems([{ product_id: "", quantity: 1 }]);
-      setSelectedBranch("");
-      
-      // Optional: Refresh stok master product jika perlu
-      // fetchMasterData(); 
+      setSelectedBranch(""); 
 
     } catch (error: any) {
       console.error("Error submit inbound:", error);
@@ -122,8 +103,8 @@ const SuperadminInbound = () => {
 
   return (
     <div className="mx-auto max-w-270">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white">
+      <div className="flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="font-semibold text-black text-title-md2 dark:text-white">
           Inbound (Kirim Stok ke Cabang)
         </h2>
         <nav>
@@ -134,7 +115,7 @@ const SuperadminInbound = () => {
         </nav>
       </div>
 
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="bg-white border rounded-sm border-stroke shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
           <h3 className="font-medium text-black dark:text-white">
             Form Surat Jalan
@@ -142,8 +123,6 @@ const SuperadminInbound = () => {
         </div>
         
         <form onSubmit={handleSubmit} className="p-6.5">
-          
-          {/* BAGIAN ATAS: Cabang & Tanggal */}
           <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
             <div className="w-full xl:w-1/2">
               <label className="mb-2.5 block text-black dark:text-white">
@@ -168,7 +147,6 @@ const SuperadminInbound = () => {
               </label>
               <div
                 className="relative w-full flatpickr-wrapper"
-                // open the flatpickr when clicking anywhere on the wrapper (icon or input)
                 onClick={() => flatpickrRef.current?.flatpickr?.open?.()}
               >
                 <DatePicker
@@ -179,7 +157,7 @@ const SuperadminInbound = () => {
                   placeholder="Select a date"
                   className="h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-none focus:ring  dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30  bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700  dark:focus:border-brand-800"
                 />
-                <span className="absolute text-gray-500 -translate-y-1/2 right-3 top-1/2 dark:text-gray-400 cursor-pointer">
+                <span className="absolute text-gray-500 -translate-y-1/2 cursor-pointer right-3 top-1/2 dark:text-gray-400">
                   <CalenderIcon className="size-6" />
                 </span>
               </div>
@@ -187,17 +165,13 @@ const SuperadminInbound = () => {
           </div>
 
           <hr className="my-6 border-stroke dark:border-strokedark" />
-
-          {/* BAGIAN TENGAH: Daftar Produk (Dinamis) */}
           <div className="mb-6">
             <h4 className="mb-4 text-xl font-semibold text-black dark:text-white">Daftar Barang</h4>
             
             {items.map((item, index) => (
-              <div key={index} className="flex gap-4 mb-4 items-end">
-                
-                {/* Dropdown Produk */}
+              <div key={index} className="flex items-end gap-4 mb-4">
                 <div className="w-full">
-                  <label className="mb-2 block text-sm text-black dark:text-white">Produk</label>
+                  <label className="block mb-2 text-sm text-black dark:text-white">Produk</label>
                   <select
                     value={item.product_id}
                     onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}
@@ -213,9 +187,8 @@ const SuperadminInbound = () => {
                   </select>
                 </div>
 
-                {/* Input Qty */}
                 <div className="w-32">
-                  <label className="mb-2 block text-sm text-black dark:text-white">Jumlah</label>
+                  <label className="block mb-2 text-sm text-black dark:text-white">Jumlah</label>
                   <input
                     type="number"
                     min="1"
@@ -226,19 +199,17 @@ const SuperadminInbound = () => {
                   />
                 </div>
 
-                {/* Tombol Hapus Baris */}
                 <button
                   type="button"
                   onClick={() => removeItemRow(index)}
                   disabled={items.length === 1} // Jangan hapus jika sisa 1
-                  className="h-10 px-4 rounded bg-red-500 text-white hover:bg-red-600 disabled:opacity-50"
+                  className="h-10 px-4 text-white bg-red-500 rounded hover:bg-red-600 disabled:opacity-50"
                 >
                   X
                 </button>
               </div>
             ))}
 
-            {/* Tombol Tambah Baris */}
             <button
               type="button"
               onClick={addItemRow}

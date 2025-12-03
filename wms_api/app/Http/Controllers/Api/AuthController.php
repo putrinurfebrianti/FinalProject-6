@@ -18,14 +18,14 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
         ];
-        
+
         $role = 'user';
         $branch_id = null;
 
         if (Auth::guard('sanctum')->check() && Auth::user()->role == 'superadmin') {
             $rules['role'] = 'required|in:admin,supervisor,user';
             $rules['branch_id'] = 'nullable|exists:branches,id';
-            
+
             $role = $request->role;
             $branch_id = $request->branch_id;
         } else {
@@ -51,7 +51,6 @@ class AuthController extends Controller
             'description' => 'User ' . $user->name . ' berhasil terdaftar dengan role ' . $user->role
         ]);
 
-        // Notify superadmins about new user registration (queued)
         try {
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();
             $payload = ['user_id' => $user->id, 'role' => $user->role, 'branch_id' => $user->branch_id, 'name' => $user->name];
@@ -67,9 +66,6 @@ class AuthController extends Controller
         return response()->json(['status' => 'success', 'message' => 'User registered successfully', 'user' => $user], 201);
     }
 
-    /**
-     * Login (Semua role)
-     */
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [

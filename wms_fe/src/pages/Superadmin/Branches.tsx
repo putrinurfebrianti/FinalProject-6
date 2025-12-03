@@ -11,20 +11,13 @@ interface Branch {
 const SuperadminBranches = () => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
-  
-  // Form State
   const [formData, setFormData] = useState<Partial<Branch>>({
     name: "",
     address: "",
   });
 
-  
-
-  // --- 1. FETCH DATA ---
   const fetchBranches = async () => {
     try {
       setLoading(true);
@@ -41,7 +34,6 @@ const SuperadminBranches = () => {
     fetchBranches();
   }, []);
 
-  // --- 2. HANDLE FORM & SUBMIT ---
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -59,24 +51,22 @@ const SuperadminBranches = () => {
 
       setIsModalOpen(false);
       fetchBranches(); 
-    } catch (err: any) {
-      alert("Gagal menyimpan: " + (err.response?.data?.message || err.message));
+    } catch {
+      alert("Gagal menyimpan cabang");
     }
   };
 
-  // --- 3. HANDLE DELETE ---
   const handleDelete = async (id: number) => {
     if (!window.confirm("Yakin ingin menghapus cabang ini?")) return;
 
     try {
       await axios.delete(`/superadmin/branches/${id}`);
       fetchBranches();
-    } catch (err: any) {
-      alert("Gagal menghapus: " + err.message);
+    } catch {
+      alert("Gagal menghapus cabang");
     }
   };
 
-  // Helper Modal
   const openCreateModal = () => {
     setModalMode("create");
     setFormData({ name: "", address: "" }); 
@@ -91,35 +81,33 @@ const SuperadminBranches = () => {
 
   return (
     <div className="mx-auto max-w-270">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white">
+      <div className="flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="font-semibold text-black text-title-md2 dark:text-white">
           Manajemen Cabang
         </h2>
         
-        {/* BUTTON TAMBAH: Sekarang pakai bg-blue-600 agar pasti terlihat */}
         <button 
           onClick={openCreateModal}
-          className="flex items-center justify-center gap-2 rounded bg-blue-600 py-2 px-4 font-medium text-white hover:bg-blue-700 transition"
+          className="flex items-center justify-center gap-2 px-4 py-2 font-medium text-white transition bg-blue-600 rounded hover:bg-blue-700"
         >
           <span className="text-xl">+</span> Tambah Cabang
         </button>
       </div>
 
-      {/* TABLE */}
       <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
         <div className="max-w-full overflow-x-auto">
           <table className="w-full table-auto">
             <thead>
-              <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                <th className="py-4 px-4 font-bold text-black dark:text-white">ID</th>
-                <th className="py-4 px-4 font-bold text-black dark:text-white">Nama Cabang</th>
-                <th className="py-4 px-4 font-bold text-black dark:text-white">Alamat</th>
-                <th className="py-4 px-4 font-bold text-black dark:text-white text-center">Aksi</th>
+              <tr className="text-left bg-gray-2 dark:bg-meta-4">
+                <th className="px-4 py-4 font-bold text-black dark:text-white">ID</th>
+                <th className="px-4 py-4 font-bold text-black dark:text-white">Nama Cabang</th>
+                <th className="px-4 py-4 font-bold text-black dark:text-white">Alamat</th>
+                <th className="px-4 py-4 font-bold text-center text-black dark:text-white">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={4} className="text-center py-4">Loading...</td></tr>
+                <tr><td colSpan={4} className="py-4 text-center">Loading...</td></tr>
               ) : branches.map((branch) => (
                 <tr key={branch.id}>
                   <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">{branch.id}</td>
@@ -129,17 +117,15 @@ const SuperadminBranches = () => {
                   <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">{branch.address}</td>
                   <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                     <div className="flex items-center justify-center space-x-3">
-                      {/* TOMBOL EDIT: Kuning/Amber */}
                       <button 
                         onClick={() => openEditModal(branch)} 
-                        className="rounded bg-amber-500 py-1 px-3 text-sm font-medium text-white hover:bg-amber-600 transition"
+                        className="px-3 py-1 text-sm font-medium text-white transition rounded bg-amber-500 hover:bg-amber-600"
                       >
                         Edit
                       </button>
-                      {/* TOMBOL HAPUS: Merah */}
                       <button 
                         onClick={() => handleDelete(branch.id)} 
-                        className="rounded bg-red-600 py-1 px-3 text-sm font-medium text-white hover:bg-red-700 transition"
+                        className="px-3 py-1 text-sm font-medium text-white transition bg-red-600 rounded hover:bg-red-700"
                       >
                         Hapus
                       </button>
@@ -152,16 +138,15 @@ const SuperadminBranches = () => {
         </div>
       </div>
 
-      {/* MODAL FORM */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-lg rounded-sm border border-stroke bg-white p-8 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="w-full max-w-lg p-8 bg-white border rounded-sm border-stroke shadow-default dark:border-strokedark dark:bg-boxdark">
             <h3 className="mb-6 text-xl font-bold text-black dark:text-white">
               {modalMode === "create" ? "Tambah Cabang Baru" : "Edit Cabang"}
             </h3>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-                <label className="mb-2 block font-medium text-black dark:text-white">Nama Cabang</label>
+                <label className="block mb-2 font-medium text-black dark:text-white">Nama Cabang</label>
                 <input 
                   type="text" name="name" required value={formData.name} onChange={handleInputChange}
                   className="w-full rounded border-[1.5px] border-stroke py-2 px-3 outline-none transition focus:border-blue-600 dark:border-form-strokedark dark:bg-form-input"
@@ -169,7 +154,7 @@ const SuperadminBranches = () => {
                 />
               </div>
               <div className="mb-6">
-                <label className="mb-2 block font-medium text-black dark:text-white">Alamat</label>
+                <label className="block mb-2 font-medium text-black dark:text-white">Alamat</label>
                 <textarea 
                   name="address" required value={formData.address} onChange={handleInputChange}
                   rows={3}
@@ -179,10 +164,10 @@ const SuperadminBranches = () => {
               </div>
 
               <div className="flex gap-4">
-                <button type="submit" className="w-full rounded bg-blue-600 p-3 font-medium text-white hover:bg-blue-700 transition">
+                <button type="submit" className="w-full p-3 font-medium text-white transition bg-blue-600 rounded hover:bg-blue-700">
                   Simpan
                 </button>
-                <button type="button" onClick={() => setIsModalOpen(false)} className="w-full rounded bg-gray-300 p-3 font-medium text-black hover:bg-gray-400 transition">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="w-full p-3 font-medium text-black transition bg-gray-300 rounded hover:bg-gray-400">
                   Batal
                 </button>
               </div>

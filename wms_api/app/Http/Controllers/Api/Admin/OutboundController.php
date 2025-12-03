@@ -59,33 +59,29 @@ class OutboundController extends Controller
                 'description' => 'Admin mencatat invoice ' . $outbound->order_number . ' (Qty: ' . $outbound->quantity . ')'
             ]);
 
-            // If the outbound is linked to an order, check if all items are processed and update order status
             if ($outbound->order_id) {
                 $order = \App\Models\Order::find($outbound->order_id);
-                
+
                 if ($order) {
-                    // Count total outbounds for this order (including the one just created)
                     $totalOutbounds = Outbound::where('order_id', $order->id)->count();
                     $totalOrderItems = $order->items()->count();
-                    
+
                     ActivityLog::create([
                         'user_id' => $admin->id,
                         'action' => 'ORDER_PROGRESS',
                         'description' => "Order {$order->order_number}: {$totalOutbounds}/{$totalOrderItems} items processed"
                     ]);
-                    
-                    // If all items have been processed, mark order as completed
+
                     if ($totalOrderItems > 0 && $totalOutbounds >= $totalOrderItems) {
                         $order->status = 'completed';
                         $order->save();
-                        
+
                         ActivityLog::create([
                             'user_id' => $admin->id,
                             'action' => 'ORDER_COMPLETED',
                             'description' => 'Order ' . $order->order_number . ' telah selesai diproses'
                         ]);
-                        
-                        // Trigger OrderCompleted event to notify customer and supervisor
+
                         try {
                             event(new OrderCompleted($order));
                         } catch (\Exception $e) {
@@ -101,7 +97,6 @@ class OutboundController extends Controller
 
             DB::commit();
 
-            // Notify relevant users (queued)
             try {
                 event(new OutboundCreated($outbound));
             } catch (\Exception $e) {

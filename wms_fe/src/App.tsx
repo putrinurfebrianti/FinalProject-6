@@ -1,39 +1,27 @@
 import { Routes, Route } from "react-router-dom";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
-
 import AuthRoute from "./routes/AuthRoute";
 import SupervisorRoute from "./routes/SupervisorRoute";
 import AdminRoute from "./routes/AdminRoute";
 import RedirectIfAuth from "./routes/RedirectIfAuth";
 import CustomerRoute from "./routes/CustomerRoute";
-
-// === AUTH PAGES ===
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
-
-// === CUSTOMER PAGES ===
 import CustomerDashboard from "./pages/Customer/CustomerDashboard";
 import ProductCatalog from "./pages/Customer/ProductCatalog";
 import OrderForm from "./pages/Customer/OrderForm";
 import MyOrders from "./pages/Customer/MyOrders";
-
-// === SUPERVISOR PAGES ===
 import SupervisorDashboard from "./pages/Supervisor/SupervisorDashboard";
 import SupervisorReports from "./pages/Supervisor/SupervisorReports";
-
-// === ADMIN PAGES ===
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBranchStock from "./pages/admin/AdminBranchStock2";
 import AdminOutbounds from "./pages/admin/AdminOutbounds";
 import AdminReports from "./pages/admin/AdminReports";
-
-// === COMMON PAGES ===
 import UserProfiles from "./pages/UserProfiles";
 import NotFound from "./pages/OtherPage/NotFound";
 import NotificationsPage from "./pages/Notifications";
-
-import SuperadminDashboard from "./pages/Superadmin/Dashboard"; // Halaman Dashboard baru
+import SuperadminDashboard from "./pages/Superadmin/Dashboard";
 import SuperadminProducts from "./pages/Superadmin/Products"; // Halaman Products baru
 import SuperadminBranchStock from "./pages/Superadmin/Branchstock";
 import SuperadminInbound from "./pages/Superadmin/Inbound";
@@ -47,18 +35,13 @@ export default function App() {
     <>
       <ScrollToTop />
       <Routes>
-
-        {/* === PUBLIC AUTH ROUTES === */}
         <Route element={<RedirectIfAuth />}>
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
         </Route>
 
-        {/* === PROTECTED ROUTES === */}
         <Route element={<AuthRoute />}>
           <Route element={<AppLayout />}>
-
-            {/* ==== CUSTOMER ONLY ==== */}
             <Route element={<CustomerRoute />}>
               <Route path="/" element={<CustomerDashboard />} />
               <Route path="/products" element={<ProductCatalog />} />
@@ -66,17 +49,14 @@ export default function App() {
               <Route path="/my-orders" element={<MyOrders />} />
             </Route>
 
-            {/* ==== COMMON AFTER LOGIN ==== */}
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/notifications" element={<NotificationsPage />} />
 
-            {/* ==== SUPERVISOR ==== */}
             <Route element={<SupervisorRoute />}>
               <Route path="/supervisor/dashboard" element={<SupervisorDashboard />} />
               <Route path="/supervisor/reports" element={<SupervisorReports />} />
             </Route>
 
-            {/* ==== ADMIN ==== */}
             <Route element={<AdminRoute />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/stock" element={<AdminBranchStock />} />
@@ -84,7 +64,6 @@ export default function App() {
               <Route path="/admin/reports" element={<AdminReports />} />
             </Route>
 
-            {/* ==== ADMIN ==== */}
             <Route element={<SuperAdminRoute />}>
               <Route path="/superadmin/dashboard" element={<SuperadminDashboard />} />
               <Route path="/superadmin/products" element={<SuperadminProducts />} />
@@ -97,8 +76,7 @@ export default function App() {
 
           </Route>
         </Route>
-
-        {/* === 404 === */}
+        
         <Route path="*" element={<NotFound />} />
 
       </Routes>

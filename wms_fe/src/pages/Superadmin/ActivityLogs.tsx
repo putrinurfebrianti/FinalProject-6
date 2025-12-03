@@ -35,7 +35,6 @@ const SuperadminActivityLogs = () => {
     fetchLogs();
   }, []);
 
-  // Format tanggal agar lebih mudah dibaca (DD/MM/YYYY HH:mm)
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString("id-ID", {
@@ -50,7 +49,7 @@ const SuperadminActivityLogs = () => {
   return (
     <div className="mx-auto max-w-270">
       <div className="mb-6">
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white">
+        <h2 className="font-semibold text-black text-title-md2 dark:text-white">
           Activity Logs (Riwayat Aktivitas)
         </h2>
         <p className="text-sm text-gray-500">
@@ -62,23 +61,23 @@ const SuperadminActivityLogs = () => {
         <div className="max-w-full overflow-x-auto">
           <table className="w-full table-auto">
             <thead>
-              <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                <th className="py-4 px-4 font-bold text-black dark:text-white">Waktu</th>
-                <th className="py-4 px-4 font-bold text-black dark:text-white">User</th>
-                <th className="py-4 px-4 font-bold text-black dark:text-white">Aksi</th>
-                <th className="py-4 px-4 font-bold text-black dark:text-white">Deskripsi</th>
+              <tr className="text-left bg-gray-2 dark:bg-meta-4">
+                <th className="px-4 py-4 font-bold text-black dark:text-white">Waktu</th>
+                <th className="px-4 py-4 font-bold text-black dark:text-white">User</th>
+                <th className="px-4 py-4 font-bold text-black dark:text-white">Aksi</th>
+                <th className="px-4 py-4 font-bold text-black dark:text-white">Deskripsi</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-10">
+                  <td colSpan={4} className="py-10 text-center">
                     <p className="mt-2 text-gray-500">Memuat riwayat aktivitas...</p>
                   </td>
                 </tr>
               ) : logs.length === 0 ? (
                 <tr>
-                   <td colSpan={4} className="text-center py-5">Belum ada aktivitas tercatat.</td>
+                   <td colSpan={4} className="py-5 text-center">Belum ada aktivitas tercatat.</td>
                 </tr>
               ) : (
                 logs.map((log) => (
@@ -87,7 +86,7 @@ const SuperadminActivityLogs = () => {
                       {formatDate(log.created_at)}
                     </td>
                     <td className="border-b border-[#eee] py-4 px-4 dark:border-strokedark">
-                      <p className="font-medium text-black dark:text-white text-sm">
+                      <p className="text-sm font-medium text-black dark:text-white">
                         {log.user ? log.user.name : "Unknown User"}
                       </p>
                       <p className="text-xs text-gray-500">

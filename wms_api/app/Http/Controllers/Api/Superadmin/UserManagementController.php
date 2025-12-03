@@ -13,27 +13,18 @@ use Illuminate\Validation\Rule;
 
 class UserManagementController extends Controller
 {
-    /**
-     * Menampilkan daftar semua user.
-     */
     public function index()
     {
         $users = User::with('branch:id,name')->get();
         return response()->json(['status' => 'success', 'data' => $users]);
     }
 
-    /**
-     * Menampilkan data satu user.
-     */
     public function show(User $user)
     {
         $user->load('branch:id,name');
         return response()->json(['status' => 'success', 'data' => $user]);
     }
 
-    /**
-     * Update data user.
-     */
     public function update(Request $request, User $user)
     {
         $validator = Validator::make($request->all(), [
@@ -43,7 +34,7 @@ class UserManagementController extends Controller
                 'string',
                 'email',
                 'max:255',
-                Rule::unique('users')->ignore($user->id), 
+                Rule::unique('users')->ignore($user->id),
             ],
             'role' => 'required|in:admin,supervisor,user,superadmin',
             'branch_id' => 'nullable|exists:branches,id',
@@ -62,7 +53,6 @@ class UserManagementController extends Controller
 
         $user->update($userData);
 
-        // Notify the updated user about changes (queued)
         try {
             event(new UserUpdated($user));
         } catch (\Exception $e) {
@@ -76,9 +66,6 @@ class UserManagementController extends Controller
         return response()->json(['status' => 'success', 'message' => 'User updated successfully', 'data' => $user]);
     }
 
-    /**
-     * Menghapus user.
-     */
     public function destroy(User $user)
     {
         if ($user->id === Auth::id()) {
@@ -87,7 +74,6 @@ class UserManagementController extends Controller
 
         $user->delete();
 
-        // Notify superadmins that a user was deleted (queued)
         try {
             event(new UserDeleted($user));
         } catch (\Exception $e) {

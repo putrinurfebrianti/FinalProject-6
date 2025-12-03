@@ -8,9 +8,6 @@ use Carbon\Carbon;
 
 class InboundSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $today = Carbon::today()->toDateString();

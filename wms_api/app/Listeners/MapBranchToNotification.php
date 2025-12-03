@@ -18,14 +18,12 @@ class MapBranchToNotification
     {
         $branch = $event->branch;
         $superadmins = User::where('role', 'superadmin')->get();
-        
+
         $type = 'branch_created';
         if ($event instanceof BranchUpdated) $type = 'branch_updated';
         if ($event instanceof BranchDeleted) $type = 'branch_deleted';
-        
+
         $recipients = $superadmins;
-        
-        // If updated or deleted, notify admins and supervisors of the affected branch
         if ($event instanceof BranchUpdated || $event instanceof BranchDeleted) {
             $branchUsers = User::whereIn('role', ['admin', 'supervisor'])
                 ->where('branch_id', $branch->id)

@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
@@ -22,7 +19,7 @@ return new class extends Migration
             $table->foreign('branch_id')
                   ->references('id')
                   ->on('branches');
-            
+
             $table->foreign('sent_by_user_id')
                   ->references('id')
                   ->on('users');
@@ -46,12 +43,12 @@ return new class extends Migration
                   ->references('id')
                   ->on('products');
         });
-        
+
         Schema::table('reports', function (Blueprint $table) {
             $table->foreign('branch_id')
                   ->references('id')
                   ->on('branches');
-                  
+
             $table->foreign('generated_by_id')
                   ->references('id')
                   ->on('users');
@@ -63,27 +60,24 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropForeign(['branch_id']);
         });
-        
+
         Schema::table('inbounds', function (Blueprint $table) {
             $table->dropForeign(['branch_id']);
             $table->dropForeign(['sent_by_user_id']);
         });
-        
+
         Schema::table('outbounds', function (Blueprint $table) {
             $table->dropForeign(['order_id']);
             $table->dropForeign(['branch_id']);
             $table->dropForeign(['admin_id']);
             $table->dropForeign(['product_id']);
         });
-        
+
         Schema::table('reports', function (Blueprint $table) {
             $table->dropForeign(['branch_id']);
             $table->dropForeign(['generated_by_id']);

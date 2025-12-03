@@ -13,7 +13,6 @@ class BranchStockController extends Controller
     public function index()
     {
         $stocks = BranchStock::with('branch', 'product')->get();
-        // Debug: include auth user pointers to help debugging on client
         $debugUser = null;
         if (Auth::check()) {
             $user = Auth::user();
@@ -41,14 +40,12 @@ class BranchStockController extends Controller
         $stock->stock = $request->stock;
         $stock->save();
 
-        // log activity
         ActivityLog::create([
             'user_id' => Auth::user()->id,
             'action' => 'MANUAL_STOCK_UPDATE',
             'description' => 'Manual stock override by ' . Auth::user()->name . ' for branch ' . $stock->branch_id . ' product ' . $stock->product_id
         ]);
 
-        // Notify branch admins about manual stock update (queued)
         try {
             $admins = \App\Models\User::where('role', 'admin')->where('branch_id', $stock->branch_id)->get();
             $branchName = \App\Models\Branch::find($stock->branch_id)->name ?? null;

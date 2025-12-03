@@ -28,7 +28,7 @@ class Notification extends Model
     {
         $actorName = $this->actor ? $this->actor->name : 'Sistem';
         $data = $this->data ?? [];
-        
+
         return match($this->type) {
             'order_created' => "{$actorName} membuat order baru #{$data['order_number']} dengan total Rp" . number_format($data['total_amount'] ?? 0, 0, ',', '.'),
             'order_confirmation' => "Order Anda #{$data['order_number']} telah diterima dan sedang diproses",

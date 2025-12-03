@@ -70,17 +70,12 @@ export default function AdminOutbounds() {
     if (!token) return;
 
     try {
-      // Load pending orders (with cache-busting timestamp)
       const timestamp = new Date().getTime();
       const ordersRes: Response = await apiGet(`/admin/orders?_t=${timestamp}`);
       const ordersData = await ordersRes.json();
       const orders = Array.isArray(ordersData.data) ? ordersData.data : [];
-      
-      // Filter orders yang belum diproses (pending)
       const pending = orders.filter((order: Order) => order.status === 'pending');
       setPendingOrders(pending);
-
-      // Load existing outbounds
       const outboundsRes: Response = await apiGet(`/admin/outbounds?_t=${timestamp}`);
       const outboundsData = await outboundsRes.json();
       setOutbounds(Array.isArray(outboundsData.data) ? outboundsData.data : []);
@@ -93,7 +88,6 @@ export default function AdminOutbounds() {
 
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const handleProcessOrder = async (order: Order) => {
@@ -104,7 +98,6 @@ export default function AdminOutbounds() {
     setProcessing(order.id);
 
     try {
-      // Buat outbound untuk setiap item dalam order
       const today = new Date().toISOString().split("T")[0];
       
       if (!order.items || order.items.length === 0) {
@@ -113,7 +106,6 @@ export default function AdminOutbounds() {
         return;
       }
 
-      let successCount = 0;
       for (const item of order.items) {
         await apiPost("/admin/outbounds", {
           order_number: order.order_number,
@@ -122,7 +114,6 @@ export default function AdminOutbounds() {
           quantity: item.quantity,
           invoice_date: today,
         });
-        successCount++;
       }
 
       alert(`✅ Order ${order.order_number} berhasil diproses!`);
@@ -166,12 +157,12 @@ export default function AdminOutbounds() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-800">Input Invoice (Outbound)</h1>
 
         <button
           onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-herbalife-600 hover:bg-herbalife-700 text-white rounded-md transition-colors"
+          className="px-4 py-2 text-white transition-colors rounded-md bg-herbalife-600 hover:bg-herbalife-700"
         >
           + Tambahkan Outbound
         </button>
@@ -181,31 +172,30 @@ export default function AdminOutbounds() {
         <p className="text-gray-600">Memuat data...</p>
       ) : (
         <div className="space-y-6">
-          {/* Pending Orders Section */}
           {pendingOrders.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            <div className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+              <h2 className="mb-4 text-xl font-semibold text-gray-800">
                 Order Masuk ({pendingOrders.length})
               </h2>
               <div className="overflow-x-auto">
                 <table className="w-full border border-gray-300">
                   <thead className="bg-herbalife-50">
                     <tr>
-                      <th className="px-4 py-3 border text-left text-sm font-semibold text-gray-700">#</th>
-                      <th className="px-4 py-3 border text-left text-sm font-semibold text-gray-700">Order Number</th>
-                      <th className="px-4 py-3 border text-left text-sm font-semibold text-gray-700">Customer</th>
-                      <th className="px-4 py-3 border text-left text-sm font-semibold text-gray-700">Items</th>
-                      <th className="px-4 py-3 border text-left text-sm font-semibold text-gray-700">Total</th>
-                      <th className="px-4 py-3 border text-left text-sm font-semibold text-gray-700">Tanggal</th>
-                      <th className="px-4 py-3 border text-center text-sm font-semibold text-gray-700">Aksi</th>
+                      <th className="px-4 py-3 text-sm font-semibold text-left text-gray-700 border">#</th>
+                      <th className="px-4 py-3 text-sm font-semibold text-left text-gray-700 border">Order Number</th>
+                      <th className="px-4 py-3 text-sm font-semibold text-left text-gray-700 border">Customer</th>
+                      <th className="px-4 py-3 text-sm font-semibold text-left text-gray-700 border">Items</th>
+                      <th className="px-4 py-3 text-sm font-semibold text-left text-gray-700 border">Total</th>
+                      <th className="px-4 py-3 text-sm font-semibold text-left text-gray-700 border">Tanggal</th>
+                      <th className="px-4 py-3 text-sm font-semibold text-center text-gray-700 border">Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pendingOrders.map((order, i) => (
                       <tr key={order.id} className="border-t hover:bg-gray-50">
                         <td className="px-4 py-3 border">{i + 1}</td>
-                        <td className="px-4 py-3 border font-medium text-gray-900">{order.order_number}</td>
-                        <td className="px-4 py-3 border text-gray-700">{order.customer?.name}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900 border">{order.order_number}</td>
+                        <td className="px-4 py-3 text-gray-700 border">{order.customer?.name}</td>
                         <td className="px-4 py-3 border">
                           <div className="text-sm">
                             {order.items?.map((item, idx) => (
@@ -215,17 +205,17 @@ export default function AdminOutbounds() {
                             ))}
                           </div>
                         </td>
-                        <td className="px-4 py-3 border text-gray-700">
+                        <td className="px-4 py-3 text-gray-700 border">
                           Rp {order.total_amount.toLocaleString('id-ID')}
                         </td>
-                        <td className="px-4 py-3 border text-gray-600 text-sm">
+                        <td className="px-4 py-3 text-sm text-gray-600 border">
                           {new Date(order.created_at).toLocaleDateString('id-ID')}
                         </td>
-                        <td className="px-4 py-3 border text-center">
+                        <td className="px-4 py-3 text-center border">
                           <button
                             onClick={() => handleProcessOrder(order)}
                             disabled={processing === order.id}
-                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                            className="px-4 py-2 text-sm text-white transition-colors bg-green-600 rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                           >
                             {processing === order.id ? "Memproses..." : "Proses"}
                           </button>
@@ -238,21 +228,20 @@ export default function AdminOutbounds() {
             </div>
           )}
 
-          {/* Existing Outbounds Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+          <div className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+            <h2 className="mb-4 text-xl font-semibold text-gray-800">
               Data Outbound ({outbounds.length})
             </h2>
             <div className="overflow-x-auto">
               <table className="w-full border border-gray-300">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="px-4 py-3 border text-left text-sm font-semibold text-gray-700">#</th>
-                    <th className="px-4 py-3 border text-left text-sm font-semibold text-gray-700">Invoice</th>
-                    <th className="px-4 py-3 border text-left text-sm font-semibold text-gray-700">Produk</th>
-                    <th className="px-4 py-3 border text-left text-sm font-semibold text-gray-700">Qty</th>
-                    <th className="px-4 py-3 border text-left text-sm font-semibold text-gray-700">Tanggal</th>
-                    <th className="px-4 py-3 border text-left text-sm font-semibold text-gray-700">Customer</th>
+                    <th className="px-4 py-3 text-sm font-semibold text-left text-gray-700 border">#</th>
+                    <th className="px-4 py-3 text-sm font-semibold text-left text-gray-700 border">Invoice</th>
+                    <th className="px-4 py-3 text-sm font-semibold text-left text-gray-700 border">Produk</th>
+                    <th className="px-4 py-3 text-sm font-semibold text-left text-gray-700 border">Qty</th>
+                    <th className="px-4 py-3 text-sm font-semibold text-left text-gray-700 border">Tanggal</th>
+                    <th className="px-4 py-3 text-sm font-semibold text-left text-gray-700 border">Customer</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -266,15 +255,15 @@ export default function AdminOutbounds() {
                     outbounds.map((item, i) => (
                       <tr key={item.id} className="border-t hover:bg-gray-50">
                         <td className="px-4 py-3 border">{i + 1}</td>
-                        <td className="px-4 py-3 border font-medium text-gray-900">{item.order_number}</td>
-                        <td className="px-4 py-3 border text-gray-700">
+                        <td className="px-4 py-3 font-medium text-gray-900 border">{item.order_number}</td>
+                        <td className="px-4 py-3 text-gray-700 border">
                           {item.product?.name ?? `#${item.product_id}`}
                         </td>
-                        <td className="px-4 py-3 border text-gray-700">{item.quantity}</td>
-                        <td className="px-4 py-3 border text-gray-600 text-sm">
+                        <td className="px-4 py-3 text-gray-700 border">{item.quantity}</td>
+                        <td className="px-4 py-3 text-sm text-gray-600 border">
                           {new Date(item.invoice_date).toLocaleDateString('id-ID')}
                         </td>
-                        <td className="px-4 py-3 border text-gray-600">
+                        <td className="px-4 py-3 text-gray-600 border">
                           {item.order?.customer?.name ?? '-'}
                         </td>
                       </tr>
@@ -288,9 +277,9 @@ export default function AdminOutbounds() {
       )}
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white shadow-lg rounded-lg p-6 w-[420px]">
-            <h2 className="text-xl font-semibold mb-4">Tambah Outbound Manual</h2>
+            <h2 className="mb-4 text-xl font-semibold">Tambah Outbound Manual</h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <input
@@ -300,7 +289,7 @@ export default function AdminOutbounds() {
                 onChange={(e) =>
                   setForm({ ...form, order_number: e.target.value })
                 }
-                className="w-full border border-gray-300 p-2 rounded"
+                className="w-full p-2 border border-gray-300 rounded"
                 required
               />
 
@@ -311,7 +300,7 @@ export default function AdminOutbounds() {
                 onChange={(e) =>
                   setForm({ ...form, product_id: e.target.value })
                 }
-                className="w-full border border-gray-300 p-2 rounded"
+                className="w-full p-2 border border-gray-300 rounded"
                 required
               />
 
@@ -322,14 +311,14 @@ export default function AdminOutbounds() {
                 onChange={(e) =>
                   setForm({ ...form, quantity: e.target.value })
                 }
-                className="w-full border border-gray-300 p-2 rounded"
+                className="w-full p-2 border border-gray-300 rounded"
                 required
               />
 
               <DatePicker
                 value={form.invoice_date}
                 onChange={(date) => setForm({ ...form, invoice_date: date })}
-                className="w-full border border-gray-300 p-2 rounded"
+                className="w-full p-2 border border-gray-300 rounded"
                 options={{ dateFormat: "Y-m-d" }}
                 placeholder="Pilih Tanggal"
                 required
@@ -339,14 +328,14 @@ export default function AdminOutbounds() {
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded transition-colors"
+                  className="px-4 py-2 text-white transition-colors bg-gray-400 rounded hover:bg-gray-500"
                 >
                   Batal
                 </button>
 
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-herbalife-600 hover:bg-herbalife-700 text-white rounded transition-colors"
+                  className="px-4 py-2 text-white transition-colors rounded bg-herbalife-600 hover:bg-herbalife-700"
                 >
                   Simpan
                 </button>

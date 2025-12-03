@@ -15,15 +15,11 @@ use App\Models\Outbound;
 
 class DashboardController extends Controller
 {
-    /**
-     * Memberikan data statistik berdasarkan role user.
-     */
     public function getStats()
     {
         $user = Auth::user();
         $stats = [];
 
-        // --- STATISTIK UNTUK SUPERADMIN ---
         if ($user->role == 'superadmin') {
             $stats = [
                 'total_central_stock' => Product::sum('central_stock'),
@@ -32,12 +28,11 @@ class DashboardController extends Controller
                 'total_users' => User::count(),
                 'pending_orders' => Order::where('status', 'pending')->count(),
             ];
-        } 
-        
-        // --- STATISTIK UNTUK ADMIN ATAU SUPERVISOR ---
+        }
+
         else if ($user->role == 'admin' || $user->role == 'supervisor') {
             $branchId = $user->branch_id;
-            
+
             if (!$branchId) {
                 return response()->json(['status' => 'error', 'message' => 'Akun Anda tidak terhubung ke cabang.'], 404);
             }
@@ -51,16 +46,14 @@ class DashboardController extends Controller
                 'outbounds_today_invoice' => Outbound::where('branch_id', $branchId)->whereDate('invoice_date', today())->sum('quantity'),
                 'pending_orders_branch' => Order::where('branch_id', $branchId)->where('status', 'pending')->count(),
             ];
-            
-            // Add pending reports for supervisor
+
             if ($user->role == 'supervisor') {
                 $stats['pending_reports'] = \App\Models\Report::where('branch_id', $branchId)
                     ->where('is_verified', false)
                     ->count();
             }
-        } 
-        
-        // --- STATISTIK UNTUK USER (CUSTOMER) ---
+        }
+
         else if ($user->role == 'user') {
             $stats = [
                 'my_total_orders' => Order::where('customer_id', $user->id)->count(),

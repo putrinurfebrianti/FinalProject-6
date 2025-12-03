@@ -15,8 +15,7 @@ class MapOrderCompletedToNotification
     public function handle(OrderCompleted $event)
     {
         $order = $event->order;
-        
-        // Notify customer that their order is completed
+
         if ($order->customer_id) {
             $payload = [
                 'order_id' => $order->id,
@@ -24,7 +23,7 @@ class MapOrderCompletedToNotification
                 'branch_id' => $order->branch_id,
                 'total_amount' => $order->total_amount
             ];
-            
+
             event(new NotificationEventDirect(
                 [$order->customer_id],
                 null,
@@ -32,13 +31,12 @@ class MapOrderCompletedToNotification
                 $payload
             ));
         }
-        
-        // Notify supervisors of the branch
+
         if ($order->branch_id) {
             $supervisors = User::where('role', 'supervisor')
                 ->where('branch_id', $order->branch_id)
                 ->get();
-            
+
             if ($supervisors->count() > 0) {
                 $payload = [
                     'order_id' => $order->id,
@@ -47,7 +45,7 @@ class MapOrderCompletedToNotification
                     'total_amount' => $order->total_amount,
                     'customer_name' => $order->customer ? $order->customer->name : 'Unknown'
                 ];
-                
+
                 event(new NotificationEventDirect(
                     $supervisors,
                     null,

@@ -13,12 +13,12 @@ class ReportController extends Controller
     public function index()
     {
         $supervisorBranchId = Auth::user()->branch_id;
-        
+
         $reports = Report::where('branch_id', $supervisorBranchId)
                          ->with('generator:id,name', 'verifier:id,name')
                          ->orderBy('report_date', 'desc')
                          ->get();
-                         
+
         return response()->json(['data' => $reports]);
     }
 
@@ -46,7 +46,6 @@ class ReportController extends Controller
             'description' => 'Supervisor memverifikasi laporan ID ' . $report->id . ' (Tanggal: ' . $report->report_date . ')'
         ]);
 
-        // Notify the generator and all superadmins via queued event
         try {
             $generatorUser = \App\Models\User::find($report->generated_by_id);
             $superadmins = \App\Models\User::where('role', 'superadmin')->get();

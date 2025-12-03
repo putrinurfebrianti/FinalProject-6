@@ -15,7 +15,6 @@ class MapOutboundToNotification
     public function handle(OutboundCreated $event)
     {
         $outbound = $event->outbound;
-        // Notify superadmins and admins from the same branch
         $superadmins = User::where('role', 'superadmin')->get();
         $branchAdmins = User::where('role', 'admin')
             ->where('branch_id', $outbound->branch_id)

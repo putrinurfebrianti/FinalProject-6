@@ -57,7 +57,6 @@ export default function AdminDashboard() {
 
         const result = await response.json();
 
-        // ⬇ backend pakai "data", bukan "stats"
         if (result && result.data) {
           setStats(result.data);
         } else {

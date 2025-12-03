@@ -18,7 +18,6 @@ class MapReportToNotification
         $report = $event->report;
 
         if ($event instanceof ReportCreated) {
-            // Notifikasi untuk report yang baru dibuat
             $supervisors = User::where('role', 'supervisor')->where('branch_id', $report->branch_id)->get();
             $superadmins = User::where('role', 'superadmin')->get();
             $recipients = $supervisors->merge($superadmins);
@@ -32,7 +31,6 @@ class MapReportToNotification
             ];
             event(new NotificationEventDirect($recipients, $report->generated_by_id ?? null, 'report_created', $payload));
         } elseif ($event instanceof ReportVerified) {
-            // Notifikasi untuk report yang diverifikasi
             $generator = User::find($report->generated_by_id);
             $superadmins = User::where('role', 'superadmin')->get();
             $recipients = $superadmins;

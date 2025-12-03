@@ -6,13 +6,8 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        // Only add the columns if they don't already exist — this migration may be applied
-        // on databases that already had `price` or `image` added earlier.
         if (!Schema::hasColumn('products', 'price')) {
             Schema::table('products', function (Blueprint $table) {
                 $table->decimal('price', 12, 2)->default(0)->after('category');
@@ -26,9 +21,6 @@ return new class extends Migration
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         // Drop columns if they exist

@@ -19,7 +19,6 @@ class MapProductToNotification
     public function handle(ProductCreated|ProductUpdated|ProductDeleted $event)
     {
         $product = $event->product;
-        // Product changes only notify superadmins (products are global)
         $recipients = User::where('role', 'superadmin')->get();
 
         $type = 'product_created';

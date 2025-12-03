@@ -60,7 +60,6 @@ const SuperadminUsers = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Authorization header already set via axios.defaults
     
     try {
       if (modalMode === "create") {
@@ -68,7 +67,7 @@ const SuperadminUsers = () => {
         alert("User berhasil dibuat!");
       } else {
         if (!formData.id) return;
-        const payload: any = { ...formData };
+        const payload = { ...formData };
         if (!payload.password) delete payload.password;
 
         await axios.put(`/superadmin/users/${formData.id}`, payload);
@@ -86,8 +85,8 @@ const SuperadminUsers = () => {
     try {
       await axios.delete(`/superadmin/users/${id}`);
       fetchData();
-    } catch (err) {
-      alert("Gagal menghapus user.");
+    } catch {
+      alert("Gagal menghapus user!");
     }
   };
 
@@ -112,13 +111,11 @@ const SuperadminUsers = () => {
 
   return (
     <div className="mx-auto max-w-270">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white">Manajemen User</h2>
-        
-        {/* TOMBOL TAMBAH USER: Pakai bg-blue-600 */}
+      <div className="flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="font-semibold text-black text-title-md2 dark:text-white">Manajemen User</h2>        
         <button 
           onClick={openCreate} 
-          className="flex items-center justify-center gap-2 rounded bg-blue-600 py-2 px-4 font-medium text-white hover:bg-blue-700 transition"
+          className="flex items-center justify-center gap-2 px-4 py-2 font-medium text-white transition bg-blue-600 rounded hover:bg-blue-700"
         >
           <span className="text-xl">+</span> Tambah User
         </button>
@@ -128,24 +125,24 @@ const SuperadminUsers = () => {
         <div className="max-w-full overflow-x-auto">
           <table className="w-full table-auto">
             <thead>
-              <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                <th className="py-4 px-4 font-bold text-black dark:text-white">Nama</th>
-                <th className="py-4 px-4 font-bold text-black dark:text-white">Email</th>
-                <th className="py-4 px-4 font-bold text-black dark:text-white">Role</th>
-                <th className="py-4 px-4 font-bold text-black dark:text-white">Cabang</th>
-                <th className="py-4 px-4 font-bold text-black dark:text-white text-center">Aksi</th>
+              <tr className="text-left bg-gray-2 dark:bg-meta-4">
+                <th className="px-4 py-4 font-bold text-black dark:text-white">Nama</th>
+                <th className="px-4 py-4 font-bold text-black dark:text-white">Email</th>
+                <th className="px-4 py-4 font-bold text-black dark:text-white">Role</th>
+                <th className="px-4 py-4 font-bold text-black dark:text-white">Cabang</th>
+                <th className="px-4 py-4 font-bold text-center text-black dark:text-white">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-10">
+                  <td colSpan={5} className="py-10 text-center">
                     <p className="mt-2 text-gray-500">Memuat data user...</p>
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                   <td colSpan={5} className="text-center py-5">Belum ada user.</td>
+                   <td colSpan={5} className="py-5 text-center">Belum ada user.</td>
                 </tr>
               ) : (
                 users.map((user) => (
@@ -166,17 +163,16 @@ const SuperadminUsers = () => {
                     </td>
                     <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                         <div className="flex items-center justify-center space-x-3">
-                            {/* TOMBOL EDIT: Kuning */}
                             <button 
                                 onClick={() => openEdit(user)} 
-                                className="rounded bg-amber-500 py-1 px-3 text-sm font-medium text-white hover:bg-amber-600 transition"
+                                className="px-3 py-1 text-sm font-medium text-white transition rounded bg-amber-500 hover:bg-amber-600"
                             >
                                 Edit
                             </button>
-                            {/* TOMBOL HAPUS: Merah */}
+                            
                             <button 
                                 onClick={() => handleDelete(user.id)} 
-                                className="rounded bg-red-600 py-1 px-3 text-sm font-medium text-white hover:bg-red-700 transition"
+                                className="px-3 py-1 text-sm font-medium text-white transition bg-red-600 rounded hover:bg-red-700"
                             >
                                 Hapus
                             </button>
@@ -192,8 +188,8 @@ const SuperadminUsers = () => {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-lg bg-white p-8 rounded shadow-lg dark:bg-boxdark">
-            <h3 className="text-xl font-bold mb-6 text-black dark:text-white">{modalMode === "create" ? "Tambah User Baru" : "Edit User"}</h3>
+          <div className="w-full max-w-lg p-8 bg-white rounded shadow-lg dark:bg-boxdark">
+            <h3 className="mb-6 text-xl font-bold text-black dark:text-white">{modalMode === "create" ? "Tambah User Baru" : "Edit User"}</h3>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label className="block mb-2 font-medium dark:text-white">Nama Lengkap</label>
@@ -208,7 +204,7 @@ const SuperadminUsers = () => {
                 <input type="password" name="password" value={formData.password} onChange={handleInputChange} className="w-full border-[1.5px] border-stroke p-2 rounded outline-none focus:border-blue-600 dark:bg-form-input" required={modalMode === "create"} />
               </div>
               
-              <div className="mb-6 grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
                     <label className="block mb-2 font-medium dark:text-white">Role</label>
                     <select name="role" value={formData.role} onChange={handleInputChange} className="w-full border-[1.5px] border-stroke p-2 rounded outline-none focus:border-blue-600 dark:bg-form-input">
@@ -230,8 +226,8 @@ const SuperadminUsers = () => {
               </div>
 
               <div className="flex gap-4">
-                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded font-medium transition">Simpan</button>
-                <button type="button" onClick={() => setIsModalOpen(false)} className="w-full bg-gray-300 hover:bg-gray-400 text-black p-3 rounded font-medium transition">Batal</button>
+                <button type="submit" className="w-full p-3 font-medium text-white transition bg-blue-600 rounded hover:bg-blue-700">Simpan</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="w-full p-3 font-medium text-black transition bg-gray-300 rounded hover:bg-gray-400">Batal</button>
               </div>
             </form>
           </div>

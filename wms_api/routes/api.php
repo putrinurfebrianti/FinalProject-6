@@ -23,18 +23,10 @@ use App\Http\Controllers\Api\DashboardController;
 |--------------------------------------------------------------------------
 */
 
-// ====================================================
-// RUTE PUBLIK
-// ====================================================
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
-
-// ====================================================
-// RUTE YANG BUTUH LOGIN (ROLE APAPUN)
-// ====================================================
 Route::middleware('auth:sanctum')->group(function () {
-        // Notifications
         Route::get('/notifications', [App\Http\Controllers\Api\NotificationController::class, 'index']);
         Route::patch('/notifications/{id}/read', [App\Http\Controllers\Api\NotificationController::class, 'markRead']);
         Route::patch('/notifications/{id}/unread', [App\Http\Controllers\Api\NotificationController::class, 'markUnread']);
@@ -47,17 +39,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
 });
 
-// ====================================================
-// RUTE ROLE: USER (CUSTOMER)
-// ====================================================
 Route::middleware(['auth:sanctum', 'user'])->prefix('user')->group(function () {
     Route::post('/orders', [OrderController::class, 'createOrder']);
     Route::get('/orders', [OrderController::class, 'getMyOrders']);
 });
 
-// ====================================================
-// RUTE ROLE: ADMIN CABANG (& SUPERADMIN)
-// ====================================================
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/orders', [App\Http\Controllers\Api\Admin\OrderController::class, 'index']);
     Route::get('/outbounds', [OutboundController::class, 'index']);
@@ -67,17 +53,11 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/stock', [BranchStockController::class, 'getMyBranchStock']);
 });
 
-// ====================================================
-// RUTE ROLE: SUPERVISOR (& SUPERADMIN)
-// ====================================================
 Route::middleware(['auth:sanctum', 'supervisor'])->prefix('supervisor')->group(function () {
     Route::get('/reports', [SupervisorReportController::class, 'index']);
     Route::post('/reports/{report}/verify', [SupervisorReportController::class, 'verifyReport']);
 });
 
-// ====================================================
-// RUTE ROLE: HANYA SUPERADMIN
-// ====================================================
 Route::middleware(['auth:sanctum', 'superadmin'])->prefix('superadmin')->group(function () {
     Route::post('/inbounds', [InboundController::class, 'createInbound']);
     Route::post('/inbounds/bulk', [InboundController::class, 'bulk']);
